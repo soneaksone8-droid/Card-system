@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - ປກສ ເມືອງເຊບັ້ງໄຟ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #003087;
+    --secondary: #c8102e;
+    --gold: #FFD700;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --info: #2563eb;
+    --bg: #f0f4ff;
+    --white: #fff;
+    --gray: #6b7280;
+    --shadow: 0 4px 24px rgba(0,48,135,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans Lao', sans-serif; background: var(--bg); }
+
+  /* LOGIN */
+  .login-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #001f5e, #003087, #c8102e);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .login-card { background: white; border-radius: 24px; padding: 40px 32px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .login-logo { text-align: center; font-size: 48px; margin-bottom: 8px; }
+  .login-title { text-align: center; font-size: 18px; font-weight: 700; color: var(--primary); }
+  .login-badge { text-align: center; background: var(--secondary); color: white; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; display: inline-block; margin: 6px auto 20px; }
+  .login-center { text-align: center; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 5px; }
+  .form-group input { width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; font-family: 'Noto Sans Lao', sans-serif; }
+  .form-group input:focus { outline: none; border-color: var(--primary); }
+  .btn-login { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), #0052cc); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; margin-top: 6px; }
+  .login-err { color: var(--danger); font-size: 12px; text-align: center; margin-top: 8px; display: none; }
+
+  /* APP */
+  .app-page { display: none; }
+  .topbar { background: linear-gradient(135deg, var(--primary), #0052cc); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--gold); }
+  .topbar-info h2 { color: white; font-size: 15px; font-weight: 700; }
+  .topbar-info p { color: var(--gold); font-size: 11px; }
+  .btn-logout { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 6px 14px; font-size: 12px; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; }
+
+  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+  .tab-btn { flex-shrink: 0; padding: 10px 14px; background: white; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 12px; font-weight: 600; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; color: var(--gray); white-space: nowrap; }
+  .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Stat Cards */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: white; border-radius: 14px; padding: 16px; box-shadow: var(--shadow); border-left: 4px solid; }
+  .stat-card.total { border-color: var(--primary); }
+  .stat-card.success { border-color: var(--success); }
+  .stat-card.pending { border-color: var(--warning); }
+  .stat-card.problem { border-color: var(--danger); }
+  .stat-icon { font-size: 24px; margin-bottom: 6px; }
+  .stat-num { font-size: 28px; font-weight: 900; color: #1f2937; }
+  .stat-label { font-size: 11px; color: var(--gray); margin-top: 2px; }
+
+  /* Finance Cards */
+  .finance-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .finance-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .finance-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+  .finance-row:last-child { border: none; }
+  .finance-label { font-size: 13px; color: var(--gray); }
+  .finance-value { font-size: 14px; font-weight: 700; }
+  .finance-value.primary { color: var(--primary); }
+  .finance-value.success { color: var(--success); }
+  .finance-value.warning { color: var(--warning); }
+  .finance-value.danger { color: var(--danger); }
+  .finance-highlight { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 2px solid var(--success); border-radius: 12px; padding: 14px; margin-top: 12px; text-align: center; }
+  .finance-highlight .big-num { font-size: 24px; font-weight: 900; color: var(--success); }
+  .finance-highlight .label { font-size: 12px; color: var(--gray); margin-top: 2px; }
+
+  /* Withdraw */
+  .btn-withdraw { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--warning), #b45309); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; margin-bottom: 16px; }
+  .withdraw-form { background: white; border-radius: 14px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; display: none; }
+  .withdraw-form.show { display: block; }
+  .inp { width: 100%; padding: 11px 13px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: 'Noto Sans Lao', sans-serif; margin-bottom: 10px; }
+  .inp:focus { outline: none; border-color: var(--primary); }
+  .btn-confirm-w { width: 100%; padding: 13px; background: var(--warning); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; }
+  .btn-cancel { width: 100%; padding: 11px; background: white; color: var(--gray); border: 2px solid #e5e7eb; border-radius: 12px; font-size: 13px; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; margin-top: 8px; }
+
+  .withdraw-history-item { background: white; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid var(--warning); }
+  .wh-top { display: flex; justify-content: space-between; align-items: center; }
+  .wh-amount { font-size: 16px; font-weight: 700; color: var(--warning); }
+  .wh-date { font-size: 11px; color: var(--gray); }
+  .wh-detail { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
+  /* Data table */
+  .search-bar { width: 100%; padding: 11px 13px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: 'Noto Sans Lao', sans-serif; margin-bottom: 12px; }
+  .data-item { background: white; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .di-name { font-size: 14px; font-weight: 700; color: #1f2937; }
+  .di-meta { font-size: 11px; color: var(--gray); margin-top: 3px; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-top: 5px; }
+  .status-badge.ready { background: #d1fae5; color: var(--success); }
+  .status-badge.delivered { background: #dbeafe; color: var(--info); }
+  .status-badge.problem { background: #fee2e2; color: var(--danger); }
+  .status-badge.pending { background: #fef3c7; color: var(--warning); }
+
+  /* Refresh */
+  .btn-refresh { width: 100%; padding: 11px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; margin-bottom: 12px; }
+
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .popup-overlay.show { display: flex; }
+  .popup-box { background: white; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 340px; text-align: center; }
+  .popup-icon { font-size: 48px; margin-bottom: 10px; }
+  .popup-title { font-size: 18px; font-weight: 700; color: var(--success); margin-bottom: 6px; }
+  .popup-msg { font-size: 13px; color: var(--gray); margin-bottom: 18px; line-height: 1.6; }
+  .btn-ok { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <div class="login-logo"><img src="https://soneaksone8-droid.github.io/Card-system/logo.png" style="width:56px;height:56px;border-radius:50%;object-fit:cover;"></div>
+    <div class="login-title">Admin Dashboard</div>
+    <div class="login-center"><span class="login-badge">ສຳລັບຜູ້ດູແລລະບົບເທົ່ານັ້ນ</span></div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="admin username...">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="password..." onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">🔐 ເຂົ້າສູ່ລະບົບ</button>
+    <div class="login-err" id="loginErr">❌ ຂໍ້ມູນບໍ່ຖືກຕ້ອງ ຫຼື ບໍ່ມີສິດ Admin</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app-page" id="appPage">
+  <div class="topbar">
+    <div class="topbar-info">
+      <h2>🚔 Admin Dashboard</h2>
+      <p id="topbarUser">ປກສ ເມືອງເຊບັ້ງໄຟ</p>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">ອອກ</button>
+  </div>
+
+  <div class="content">
+    <div class="tabs">
+      <div class="tab-btn active" onclick="switchTab('overview')">📊 ພາບລວມ</div>
+      <div class="tab-btn" onclick="switchTab('finance')">💰 ການເງິນ</div>
+      <div class="tab-btn" onclick="switchTab('data')">📋 ຂໍ້ມູນ</div>
+      <div class="tab-btn" onclick="switchTab('log')">📜 ປະຫວັດ</div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-panel active" id="tab-overview">
+      <button class="btn-refresh" onclick="loadAll()">🔄 ໂຫຼດຂໍ້ມູນໃໝ່</button>
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-icon">📋</div>
+          <div class="stat-num" id="totalCount">-</div>
+          <div class="stat-label">ບັດທັງໝົດ</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-num" id="deliveredCount">-</div>
+          <div class="stat-label">ຈັດສົ່ງສຳເລັດ</div>
+        </div>
+        <div class="stat-card pending">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-num" id="pendingCount">-</div>
+          <div class="stat-label">ກຳລັງຈັດສົ່ງ</div>
+        </div>
+        <div class="stat-card problem">
+          <div class="stat-icon">❌</div>
+          <div class="stat-num" id="problemCount">-</div>
+          <div class="stat-label">ມີບັນຫາ</div>
+        </div>
+      </div>
+
+      <div class="finance-card">
+        <div class="finance-title">💰 ສັງລວມການເງິນ</div>
+        <div class="finance-row">
+          <span class="finance-label">ບັດທັງໝົດ</span>
+          <span class="finance-value primary" id="totalCards2">-</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-label">ລາຍຮັບລວມ (30,000/ບັດ)</span>
+          <span class="finance-value primary" id="totalRevenue">-</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-label">ສ່ວນສູນກາງ (20,000/ບັດ)</span>
+          <span class="finance-value warning" id="centerShare">-</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-label">ສ່ວນທ້ອງຖິ່ນ (10,000/ບັດ)</span>
+          <span class="finance-value success" id="localShare">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCE TAB -->
+    <div class="tab-panel" id="tab-finance">
+      <div class="finance-card">
+        <div class="finance-title">🏘️ ການເງິນທ້ອງຖິ່ນ</div>
+        <div class="finance-row">
+          <span class="finance-label">ລາຍຮັບທ້ອງຖິ່ນສະສົມ</span>
+          <span class="finance-value success" id="f-localTotal">-</span>
+        </div>
+        <div class="finance-row">
+          <span class="finance-label">ຖອນໃຫ້ຫົວໜ້າແລ້ວ</span>
+          <span class="finance-value danger" id="f-withdrawn">-</span>
+        </div>
+        <div class="finance-highlight">
+          <div class="big-num" id="f-remaining">-</div>
+          <div class="label">💵 ຍອດຄົງເຫຼືອໃນມືຕົວຈິງ</div>
+        </div>
+      </div>
+
+      <button class="btn-withdraw" onclick="toggleWithdrawForm()">💸 ບັນທຶກການຖອນໃຫ້ຫົວໜ້າ</button>
+
+      <div class="withdraw-form" id="withdrawForm">
+        <div style="font-size:14px;font-weight:700;color:var(--primary);margin-bottom:12px;">💸 ບັນທຶກການຖອນ</div>
+        <input class="inp" type="number" id="wAmount" placeholder="ຈຳນວນເງິນ (ກີບ)...">
+        <input class="inp" type="text" id="wTo" placeholder="ຖອນໃຫ້ (ຊື່ຫົວໜ້າ)...">
+        <input class="inp" type="text" id="wNote" placeholder="ໝາຍເຫດ... (ທາງເລືອກ)">
+        <button class="btn-confirm-w" onclick="saveWithdraw()">✅ ບັນທຶກ</button>
+        <button class="btn-cancel" onclick="toggleWithdrawForm()">ຍົກເລີກ</button>
+      </div>
+
+      <div class="finance-card">
+        <div class="finance-title">📜 ປະຫວັດການຖອນ</div>
+        <div id="withdrawHistory"><div style="text-align:center;color:var(--gray);font-size:13px;padding:16px;">ຍັງບໍ່ມີປະຫວັດ</div></div>
+      </div>
+    </div>
+
+    <!-- DATA TAB -->
+    <div class="tab-panel" id="tab-data">
+      <input class="search-bar" type="text" id="dataSearch" placeholder="ຄົ້ນຫາຊື່ ຫຼື ເລກລະຫັດ..." oninput="filterData()">
+      <div id="dataList"><div style="text-align:center;color:var(--gray);padding:20px;font-size:13px;">ກຳລັງໂຫຼດ...</div></div>
+    </div>
+
+    <!-- LOG TAB -->
+    <div class="tab-panel" id="tab-log">
+      <div class="finance-card">
+        <div class="finance-title">📜 ປະຫວັດການຈັດສົ່ງທັງໝົດ</div>
+        <div id="logList"><div style="text-align:center;color:var(--gray);font-size:13px;padding:16px;">ກຳລັງໂຫຼດ...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Popup -->
+<div class="popup-overlay" id="popup">
+  <div class="popup-box">
+    <div class="popup-icon" id="popIcon">✅</div>
+    <div class="popup-title" id="popTitle">ສຳເລັດ</div>
+    <div class="popup-msg" id="popMsg"></div>
+    <button class="btn-ok" onclick="closePopup()">ຕົກລົງ</button>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI';
+const FEE = 30000, CENTER = 20000, LOCAL = 10000;
+let currentAdmin = null;
+let allCards = [];
+let withdrawHistory = [];
+
+// ====== AUTH ======
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Staff`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    const json = JSON.parse(jsonStr[1]);
+    const allRows = json.table.rows;
+    const dataRows = allRows.slice(1);
+    const staff = dataRows.map(r => ({
+      username: (r.c[0]?.v ?? '').toString().trim(),
+      password: (r.c[1]?.v ?? '').toString().trim(),
+      name: (r.c[2]?.v ?? '').toString().trim(),
+      role: (r.c[3]?.v ?? '').toString().trim(),
+      status: (r.c[4]?.v ?? '').toString().trim(),
+    })).filter(s => s.username);
+    const found = staff.find(s => s.username.toLowerCase() === user.toLowerCase() && s.password === pass && s.role.toLowerCase() === 'admin' && s.status.includes('ງານ'));
+    if (found) {
+      currentAdmin = found;
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('appPage').style.display = 'block';
+      document.getElementById('topbarUser').textContent = `Admin: ${found.name}`;
+      loadAll();
+      loadWithdrawHistory();
+    } else {
+      document.getElementById('loginErr').style.display = 'block';
+      setTimeout(() => document.getElementById('loginErr').style.display = 'none', 3000);
+    }
+  } catch(e) {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  if (!confirm('ຕ້ອງການອອກ?')) return;
+  currentAdmin = null;
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+// ====== TABS ======
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    const tabs = ['overview','finance','data','log'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ====== LOAD DATA ======
+async function loadAll() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Cards`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    allCards = json.table.rows.map(r => ({
+      id: r.c[0]?.v?.toString().trim() || '',
+      firstName: r.c[1]?.v?.toString().trim() || '',
+      lastName: r.c[2]?.v?.toString().trim() || '',
+      status: r.c[3]?.v?.toString().trim() || '',
+      date: r.c[4]?.v?.toString().trim() || '',
+    }));
+    updateStats();
+    renderData(allCards);
+    loadDeliveryLog();
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function updateStats() {
+  const total = allCards.length;
+  const delivered = allCards.filter(c => c.status.includes('ຈັດສົ່ງສຳເລັດ')).length;
+  const pending = allCards.filter(c => c.status.includes('ພີມບັດສຳເລັດ')).length;
+  const problem = allCards.filter(c => c.status.includes('ບັດມີບັນຫາ')).length;
+
+  document.getElementById('totalCount').textContent = total.toLocaleString();
+  document.getElementById('deliveredCount').textContent = delivered.toLocaleString();
+  document.getElementById('pendingCount').textContent = pending.toLocaleString();
+  document.getElementById('problemCount').textContent = problem.toLocaleString();
+  document.getElementById('totalCards2').textContent = `${total.toLocaleString()} ບັດ`;
+  document.getElementById('totalRevenue').textContent = formatMoney(total * FEE);
+  document.getElementById('centerShare').textContent = formatMoney(total * CENTER);
+  document.getElementById('localShare').textContent = formatMoney(total * LOCAL);
+
+  // Finance tab
+  const localTotal = total * LOCAL;
+  const totalWithdrawn = withdrawHistory.reduce((s, w) => s + (Number(w.amount) || 0), 0);
+  document.getElementById('f-localTotal').textContent = formatMoney(localTotal);
+  document.getElementById('f-withdrawn').textContent = formatMoney(totalWithdrawn);
+  document.getElementById('f-remaining').textContent = formatMoney(localTotal - totalWithdrawn);
+}
+
+function formatMoney(n) {
+  return n.toLocaleString() + ' ກີບ';
+}
+
+function renderData(data) {
+  const list = document.getElementById('dataList');
+  if (!data.length) { list.innerHTML = '<div style="text-align:center;color:var(--gray);padding:20px;font-size:13px;">ບໍ່ພົບຂໍ້ມູນ</div>'; return; }
+  list.innerHTML = data.slice(0, 50).map(c => {
+    let badge = '', cls = '';
+    if (c.status.includes('ຈັດສົ່ງສຳເລັດ')) { badge = '📦 ຈັດສົ່ງສຳເລັດ'; cls = 'delivered'; }
+    else if (c.status.includes('ພີມບັດສຳເລັດ')) { badge = '✅ ພ້ອມຈັດສົ່ງ'; cls = 'ready'; }
+    else if (c.status.includes('ບັດມີບັນຫາ')) { badge = '❌ ມີບັນຫາ'; cls = 'problem'; }
+    else { badge = '⏳ ລໍຖ້າ'; cls = 'pending'; }
+    return `<div class="data-item">
+      <div class="di-name">${c.firstName} ${c.lastName}</div>
+      <div class="di-meta">🆔 ${c.id}</div>
+      <span class="status-badge ${cls}">${badge}</span>
+    </div>`;
+  }).join('');
+  if (data.length > 50) {
+    list.innerHTML += `<div style="text-align:center;color:var(--gray);font-size:12px;padding:12px;">ສະແດງ 50 ລາຍການທຳອິດຈາກ ${data.length} ລາຍການ</div>`;
+  }
+}
+
+function filterData() {
+  const q = document.getElementById('dataSearch').value.trim().toLowerCase();
+  if (!q) { renderData(allCards); return; }
+  const filtered = allCards.filter(c =>
+    c.firstName.toLowerCase().includes(q) ||
+    c.lastName.toLowerCase().includes(q) ||
+    c.id.includes(q)
+  );
+  renderData(filtered);
+}
+
+async function loadDeliveryLog() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Delivery_Log`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const logs = json.table.rows.map(r => ({
+      id: r.c[0]?.v?.toString().trim() || '',
+      name: r.c[1]?.v?.toString().trim() || '',
+      staff: r.c[2]?.v?.toString().trim() || '',
+      date: r.c[3]?.v?.toString().trim() || '',
+      time: r.c[4]?.v?.toString().trim() || '',
+      recipient: r.c[5]?.v?.toString().trim() || '',
+      proxy: r.c[6]?.v?.toString().trim() || '',
+    }));
+    const logList = document.getElementById('logList');
+    if (!logs.length) { logList.innerHTML = '<div style="text-align:center;color:var(--gray);font-size:13px;padding:12px;">ຍັງບໍ່ມີປະຫວັດ</div>'; return; }
+    logList.innerHTML = logs.reverse().slice(0, 30).map(l => `
+      <div class="withdraw-history-item" style="border-color:var(--success)">
+        <div class="wh-top">
+          <span style="font-weight:700;font-size:13px;">${l.name}</span>
+          <span class="wh-date">${l.date} ${l.time}</span>
+        </div>
+        <div class="wh-detail">🆔 ${l.id} · 👷 ${l.staff} · ${l.recipient}${l.proxy ? ` (${l.proxy})` : ''}</div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+// ====== WITHDRAW ======
+function loadWithdrawHistory() {
+  const saved = localStorage.getItem('withdrawHistory');
+  withdrawHistory = saved ? JSON.parse(saved) : [];
+  renderWithdrawHistory();
+}
+
+function saveWithdrawHistory() {
+  localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+}
+
+function toggleWithdrawForm() {
+  document.getElementById('withdrawForm').classList.toggle('show');
+}
+
+function saveWithdraw() {
+  const amount = Number(document.getElementById('wAmount').value);
+  const to = document.getElementById('wTo').value.trim();
+  const note = document.getElementById('wNote').value.trim();
+  if (!amount || amount <= 0) { alert('ກະລຸນາໃສ່ຈຳນວນເງິນ'); return; }
+  if (!to) { alert('ກະລຸນາໃສ່ຊື່ຜູ້ຮັບ'); return; }
+
+  const now = new Date();
+  const record = {
+    amount, to, note,
+    date: now.toLocaleDateString('lo-LA'),
+    time: now.toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' }),
+    by: currentAdmin.name,
+  };
+  withdrawHistory.unshift(record);
+  saveWithdrawHistory();
+  renderWithdrawHistory();
+  updateStats();
+
+  document.getElementById('wAmount').value = '';
+  document.getElementById('wTo').value = '';
+  document.getElementById('wNote').value = '';
+  document.getElementById('withdrawForm').classList.remove('show');
+
+  showPopup('✅', 'ບັນທຶກສຳເລັດ', `ຖອນ ${amount.toLocaleString()} ກີບ ໃຫ້ ${to} ສຳເລັດແລ້ວ`);
+}
+
+function renderWithdrawHistory() {
+  const el = document.getElementById('withdrawHistory');
+  if (!withdrawHistory.length) { el.innerHTML = '<div style="text-align:center;color:var(--gray);font-size:13px;padding:12px;">ຍັງບໍ່ມີປະຫວັດ</div>'; return; }
+  el.innerHTML = withdrawHistory.map(w => `
+    <div class="withdraw-history-item">
+      <div class="wh-top">
+        <span class="wh-amount">${Number(w.amount).toLocaleString()} ກີບ</span>
+        <span class="wh-date">${w.date} ${w.time}</span>
+      </div>
+      <div class="wh-detail">ຖອນໃຫ້: ${w.to} · ໂດຍ: ${w.by}${w.note ? ` · ${w.note}` : ''}</div>
+    </div>
+  `).join('');
+}
+
+// ====== POPUP ======
+function showPopup(icon, title, msg) {
+  document.getElementById('popIcon').textContent = icon;
+  document.getElementById('popTitle').textContent = title;
+  document.getElementById('popMsg').textContent = msg;
+  document.getElementById('popup').classList.add('show');
+}
+function closePopup() { document.getElementById('popup').classList.remove('show'); }
+</script>
+</body>
+</html>
