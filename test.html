@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test Sheets</title>
+</head>
+<body>
+<h2>ທົດສອບ Google Sheets</h2>
+<button onclick="testCards()">ທົດສອບ Sheet Cards</button>
+<button onclick="testStaff()">ທົດສອບ Sheet Staff</button>
+<pre id="result" style="background:#f0f0f0;padding:16px;margin-top:16px;white-space:pre-wrap;word-break:break-all;"></pre>
+
+<script>
+const SHEET_ID = '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI';
+
+async function testSheets(sheetName) {
+  const out = document.getElementById('result');
+  out.textContent = 'ກຳລັງໂຫຼດ ' + sheetName + '...';
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    out.textContent = 'Raw response (200 chars):\n' + text.substring(0, 200) + '\n\n';
+    
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = json.table.rows;
+    out.textContent += 'ຈຳນວນແຖວ: ' + rows.length + '\n\n';
+    
+    rows.forEach((r, i) => {
+      const cols = r.c.map((c, j) => `[${j}]: ${c?.v ?? 'null'}`).join(' | ');
+      out.textContent += `ແຖວ ${i+1}: ${cols}\n`;
+    });
+  } catch(e) {
+    out.textContent = 'ERROR: ' + e.message;
+  }
+}
+
+function testCards() { testSheets('Cards'); }
+function testStaff() { testSheets('Staff'); }
+</script>
+</body>
+</html>
