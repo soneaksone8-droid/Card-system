@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ລະບົບພະນັກງານ - ປກສ ເມືອງເຊບັ້ງໄຟ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+  :root {
+    --primary: #003087;
+    --secondary: #c8102e;
+    --gold: #FFD700;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --bg: #f0f4ff;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --shadow: 0 4px 24px rgba(0,48,135,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans Lao', sans-serif; background: var(--bg); min-height: 100vh; }
+
+  /* LOGIN PAGE */
+  .login-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #001f5e 0%, #003087 50%, #c8102e 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .login-card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 32px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .login-logo { text-align: center; font-size: 48px; margin-bottom: 8px; }
+  .login-title { text-align: center; font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+  .login-sub { text-align: center; font-size: 12px; color: var(--gray); margin-bottom: 28px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 13px 16px;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: 15px; font-family: 'Noto Sans Lao', sans-serif;
+    transition: all 0.2s;
+  }
+  .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,48,135,0.1); }
+  .btn-login {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--primary), #0052cc);
+    color: white; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer; transition: all 0.3s; margin-top: 8px;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,48,135,0.3); }
+  .login-error { color: var(--danger); font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+  /* MAIN APP */
+  .app-page { display: none; }
+  .topbar {
+    background: linear-gradient(135deg, var(--primary), #0052cc);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid var(--gold);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-logo { font-size: 28px; }
+  .topbar-title { color: white; font-size: 14px; font-weight: 700; }
+  .topbar-user { color: var(--gold); font-size: 12px; }
+  .btn-logout {
+    background: rgba(255,255,255,0.15); color: white;
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
+    padding: 6px 14px; font-size: 12px; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer;
+  }
+
+  .content { padding: 20px 16px; max-width: 500px; margin: 0 auto; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab-btn {
+    flex: 1; padding: 11px 8px;
+    background: white; border: 2px solid #e5e7eb;
+    border-radius: 10px; font-size: 13px; font-weight: 600;
+    font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer; color: var(--gray); transition: all 0.2s;
+    text-align: center;
+  }
+  .tab-btn.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Card */
+  .card {
+    background: white; border-radius: 16px;
+    padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
+
+  /* Input */
+  .input-row { margin-bottom: 14px; }
+  .input-row label { display: block; font-size: 12px; font-weight: 600; color: var(--gray); margin-bottom: 5px; }
+  .input-row input {
+    width: 100%; padding: 12px 14px;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: 16px; font-family: 'Noto Sans Lao', sans-serif;
+    letter-spacing: 2px;
+  }
+  .input-row input:focus { outline: none; border-color: var(--primary); }
+  .input-row input.error { border-color: var(--danger); }
+  .input-hint { font-size: 11px; margin-top: 4px; }
+  .input-hint.ok { color: var(--success); }
+  .input-hint.err { color: var(--danger); }
+
+  .btn-primary {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, var(--primary), #0052cc);
+    color: white; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-secondary {
+    width: 100%; padding: 13px;
+    background: white; color: var(--primary);
+    border: 2px solid var(--primary); border-radius: 12px;
+    font-size: 15px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer; margin-top: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* QR Scanner */
+  .qr-container {
+    background: #000; border-radius: 12px; overflow: hidden;
+    position: relative; margin-bottom: 12px;
+    display: none;
+  }
+  .qr-container.show { display: block; }
+  #qrVideo { width: 100%; display: block; }
+  .qr-overlay {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 200px;
+    border: 3px solid var(--gold);
+    border-radius: 12px;
+  }
+  .qr-overlay::before, .qr-overlay::after {
+    content: ''; position: absolute;
+    width: 30px; height: 30px;
+  }
+  #qrCanvas { display: none; }
+
+  /* Found Result */
+  .found-card {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px solid var(--success);
+    border-radius: 14px; padding: 18px;
+    margin-bottom: 16px; display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .found-card.show { display: block; }
+  .found-title { font-size: 14px; font-weight: 700; color: var(--success); margin-bottom: 12px; }
+  .found-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .found-row:last-child { border: none; }
+  .found-label { font-size: 12px; color: var(--gray); }
+  .found-value { font-size: 12px; font-weight: 700; color: #1f2937; }
+
+  /* Delivery Form */
+  .delivery-form { display: none; }
+  .delivery-form.show { display: block; }
+  .radio-group { display: flex; gap: 10px; margin-bottom: 14px; }
+  .radio-option {
+    flex: 1; padding: 12px;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    cursor: pointer; text-align: center;
+    font-size: 13px; font-weight: 600; color: var(--gray);
+    transition: all 0.2s;
+  }
+  .radio-option.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+  .proxy-input { display: none; margin-bottom: 14px; }
+  .proxy-input.show { display: block; }
+  .proxy-input input {
+    width: 100%; padding: 12px 14px;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: 14px; font-family: 'Noto Sans Lao', sans-serif;
+  }
+  .btn-confirm {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--success), #047857);
+    color: white; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-reset {
+    width: 100%; padding: 12px;
+    background: white; color: var(--gray);
+    border: 2px solid #e5e7eb; border-radius: 12px;
+    font-size: 14px; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer; margin-top: 10px;
+  }
+
+  /* Success popup */
+  .popup-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 100;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .popup-overlay.show { display: flex; }
+  .popup-box {
+    background: white; border-radius: 20px;
+    padding: 32px 24px; width: 100%; max-width: 360px;
+    text-align: center; animation: popIn 0.3s ease;
+  }
+  .popup-icon { font-size: 56px; margin-bottom: 12px; }
+  .popup-title { font-size: 20px; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+  .popup-detail { font-size: 13px; color: var(--gray); line-height: 1.7; margin-bottom: 20px; }
+  .btn-popup-ok {
+    width: 100%; padding: 13px;
+    background: var(--success); color: white;
+    border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer;
+  }
+
+  /* History tab */
+  .history-item {
+    background: white; border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-left: 4px solid var(--success);
+  }
+  .history-name { font-size: 14px; font-weight: 700; color: #1f2937; }
+  .history-meta { font-size: 12px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">🚔</div>
+    <div class="login-title">ເຂົ້າສູ່ລະບົບພະນັກງານ</div>
+    <div class="login-sub">ປກສ ເມືອງເຊບັ້ງໄຟ</div>
+    <div class="form-group">
+      <label>ຊື່ຜູ້ໃຊ້ (Username)</label>
+      <input type="text" id="loginUser" placeholder="ພິມ username...">
+    </div>
+    <div class="form-group">
+      <label>ລະຫັດຜ່ານ (Password)</label>
+      <input type="password" id="loginPass" placeholder="ພິມ password..." onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">🔐 ເຂົ້າສູ່ລະບົບ</button>
+    <div class="login-error" id="loginError">❌ ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app-page" id="appPage">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">🚔</div>
+      <div>
+        <div class="topbar-title">ລະບົບພະນັກງານ</div>
+        <div class="topbar-user" id="topbarUser">ສະບາຍດີ: -</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">ອອກ</button>
+  </div>
+
+  <div class="content">
+    <div class="tabs">
+      <div class="tab-btn active" onclick="switchTab('scan')">📷 ຈັດສົ່ງ</div>
+      <div class="tab-btn" onclick="switchTab('history')">📋 ປະຫວັດ</div>
+    </div>
+
+    <!-- SCAN TAB -->
+    <div class="tab-panel active" id="tab-scan">
+      <div class="card">
+        <div class="card-title">🔍 ຄົ້ນຫາບຸກຄົນ</div>
+
+        <!-- Method tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button class="tab-btn active" id="method1Btn" onclick="switchMethod('manual')" style="font-size:12px;padding:9px;">⌨️ ພິມລະຫັດ</button>
+          <button class="tab-btn" id="method2Btn" onclick="switchMethod('qr')" style="font-size:12px;padding:9px;">📷 ສະແກນ QR</button>
+        </div>
+
+        <!-- Manual Input -->
+        <div id="manualInput">
+          <div class="input-row">
+            <label>ເລກລະຫັດບຸກຄົນ (13 ໂຕເລກ)</label>
+            <input type="text" id="manualId" placeholder="ພິມ 13 ໂຕເລກ..." maxlength="13" inputmode="numeric" oninput="validateId(this)" onkeydown="if(event.key==='Enter')searchByManual()">
+            <div class="input-hint" id="idHint"></div>
+          </div>
+          <button class="btn-primary" onclick="searchByManual()">🔍 ຄົ້ນຫາ</button>
+        </div>
+
+        <!-- QR Input -->
+        <div id="qrInput" style="display:none;">
+          <div class="qr-container" id="qrContainer">
+            <video id="qrVideo" playsinline></video>
+            <div class="qr-overlay"></div>
+            <canvas id="qrCanvas"></canvas>
+          </div>
+          <button class="btn-primary" id="startQrBtn" onclick="startQR()">📷 ເປີດກ້ອງສະແກນ</button>
+          <button class="btn-secondary" onclick="uploadQR()">📁 ເລືອກຮູບຈາກໂທລະສັບ</button>
+          <input type="file" id="qrFile" accept="image/*" style="display:none" onchange="processQRFile(event)">
+          <div id="qrResult" style="margin-top:10px;font-size:13px;color:var(--gray);text-align:center;"></div>
+        </div>
+      </div>
+
+      <!-- Found Result -->
+      <div class="found-card" id="foundCard">
+        <div class="found-title">✅ ພົບຂໍ້ມູນແລ້ວ!</div>
+        <div class="found-row"><span class="found-label">ເລກລະຫັດ</span><span class="found-value" id="fId"></span></div>
+        <div class="found-row"><span class="found-label">ຊື່-ນາມສະກຸນ</span><span class="found-value" id="fName"></span></div>
+        <div class="found-row"><span class="found-label">ສະຖານະ</span><span class="found-value" id="fStatus"></span></div>
+      </div>
+
+      <!-- Delivery Form -->
+      <div class="delivery-form" id="deliveryForm">
+        <div class="card">
+          <div class="card-title">📦 ຢືນຢັນການຈັດສົ່ງ</div>
+          <div style="font-size:13px;color:var(--gray);margin-bottom:12px;">ຜູ້ຮັບບັດ:</div>
+          <div class="radio-group">
+            <div class="radio-option selected" id="selfOption" onclick="selectRecipient('self')">👤 ຮັບດ້ວຍຕົນເອງ</div>
+            <div class="radio-option" id="proxyOption" onclick="selectRecipient('proxy')">👥 ມີຄົນຮັບແທນ</div>
+          </div>
+          <div class="proxy-input" id="proxyInput">
+            <label style="font-size:12px;color:var(--gray);display:block;margin-bottom:5px;">ຊື່ຜູ້ຮັບແທນ</label>
+            <input type="text" id="proxyName" placeholder="ພິມຊື່ຜູ້ຮັບແທນ...">
+          </div>
+          <button class="btn-confirm" onclick="confirmDelivery()">✅ ຢືນຢັນການຈັດສົ່ງ</button>
+          <button class="btn-reset" onclick="resetSearch()">↩️ ຄົ້ນຫາໃໝ່</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-panel" id="tab-history">
+      <div class="card">
+        <div class="card-title">📋 ປະຫວັດການຈັດສົ່ງຂອງຂ້ອຍ</div>
+        <div id="historyList"><div style="text-align:center;color:var(--gray);padding:20px;">ກຳລັງໂຫຼດ...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Popup -->
+<div class="popup-overlay" id="successPopup">
+  <div class="popup-box">
+    <div class="popup-icon">✅</div>
+    <div class="popup-title">ຢືນຢັນສຳເລັດ!</div>
+    <div class="popup-detail" id="popupDetail"></div>
+    <button class="btn-popup-ok" onclick="closePopup()">ຕໍ່ໄປ</button>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI';
+const APPS_SCRIPT_URL = ''; // ໃສ່ URL Apps Script ຕອນຫຼັງ
+
+let currentUser = null;
+let foundData = null;
+let recipientType = 'self';
+let qrStream = null;
+let qrScanning = false;
+let todayHistory = [];
+
+// ====== AUTH ======
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  if (!user || !pass) { showLoginError(); return; }
+
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Staff`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const staff = json.table.rows.map(r => ({
+      username: r.c[0]?.v?.toString().trim() || '',
+      password: r.c[1]?.v?.toString().trim() || '',
+      name: r.c[2]?.v?.toString().trim() || '',
+      role: r.c[3]?.v?.toString().trim() || '',
+      status: r.c[4]?.v?.toString().trim() || '',
+    }));
+
+    const found = staff.find(s => s.username === user && s.password === pass && s.status === 'ໃຊ້ງານ');
+    if (found) {
+      currentUser = found;
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('appPage').style.display = 'block';
+      document.getElementById('topbarUser').textContent = `ສະບາຍດີ: ${found.name}`;
+      loadHistory();
+    } else {
+      showLoginError();
+    }
+  } catch(e) {
+    showLoginError();
+  }
+}
+
+function showLoginError() {
+  document.getElementById('loginError').style.display = 'block';
+  setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
+}
+
+function doLogout() {
+  if (!confirm('ຕ້ອງການອອກຈາກລະບົບ?')) return;
+  stopQR();
+  currentUser = null;
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  resetSearch();
+}
+
+// ====== TABS ======
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    if (i < 2) b.classList.toggle('active', (i === 0 && tab === 'scan') || (i === 1 && tab === 'history'));
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'history') loadHistory();
+}
+
+function switchMethod(method) {
+  document.getElementById('method1Btn').classList.toggle('active', method === 'manual');
+  document.getElementById('method2Btn').classList.toggle('active', method === 'qr');
+  document.getElementById('manualInput').style.display = method === 'manual' ? 'block' : 'none';
+  document.getElementById('qrInput').style.display = method === 'qr' ? 'block' : 'none';
+  if (method === 'manual') stopQR();
+}
+
+// ====== VALIDATE ID ======
+function validateId(input) {
+  const val = input.value.replace(/[^0-9]/g, '');
+  input.value = val;
+  const hint = document.getElementById('idHint');
+  if (val.length === 0) { hint.textContent = ''; input.classList.remove('error'); return; }
+  if (val.length < 13) {
+    hint.textContent = `⚠️ ຍັງຂາດ ${13 - val.length} ໂຕ (ປັດຈຸບັນ ${val.length} ໂຕ)`;
+    hint.className = 'input-hint err'; input.classList.add('error');
+  } else {
+    hint.textContent = '✅ ຄົບ 13 ໂຕແລ້ວ';
+    hint.className = 'input-hint ok'; input.classList.remove('error');
+  }
+}
+
+// ====== SEARCH ======
+async function searchById(id) {
+  if (id.length !== 13) { alert('⚠️ ກະລຸນາພິມເລກລະຫັດ 13 ໂຕເລກໃຫ້ຄົບ'); return; }
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Cards`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = json.table.rows.map(r => ({
+      id: r.c[0]?.v?.toString().trim() || '',
+      firstName: r.c[1]?.v?.toString().trim() || '',
+      lastName: r.c[2]?.v?.toString().trim() || '',
+      status: r.c[3]?.v?.toString().trim() || '',
+    }));
+    const found = rows.find(r => r.id === id);
+    if (found) {
+      if (found.status.includes('ຈັດສົ່ງສຳເລັດ')) {
+        alert('⚠️ ບັດນີ້ຈັດສົ່ງໄປແລ້ວ!');
+        return;
+      }
+      if (!found.status.includes('ພີມບັດສຳເລັດ')) {
+        alert('⚠️ ບັດຍັງບໍ່ພ້ອມ ບໍ່ສາມາດຈັດສົ່ງໄດ້');
+        return;
+      }
+      foundData = found;
+      showFoundCard(found);
+    } else {
+      alert('❌ ບໍ່ພົບເລກລະຫັດນີ້ໃນລະບົບ');
+    }
+  } catch(e) {
+    alert('ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່');
+  }
+}
+
+function searchByManual() {
+  const id = document.getElementById('manualId').value.trim();
+  if (id.length !== 13) { alert('⚠️ ກະລຸນາພິມເລກລະຫັດ 13 ໂຕເລກໃຫ້ຄົບ'); return; }
+  searchById(id);
+}
+
+function showFoundCard(data) {
+  document.getElementById('fId').textContent = data.id;
+  document.getElementById('fName').textContent = `${data.firstName} ${data.lastName}`;
+  document.getElementById('fStatus').textContent = data.status;
+  document.getElementById('foundCard').classList.add('show');
+  document.getElementById('deliveryForm').classList.add('show');
+}
+
+// ====== QR SCANNER ======
+async function startQR() {
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.getElementById('qrVideo');
+    video.srcObject = qrStream;
+    await video.play();
+    document.getElementById('qrContainer').classList.add('show');
+    document.getElementById('startQrBtn').textContent = '⏹️ ປິດກ້ອງ';
+    document.getElementById('startQrBtn').onclick = stopQR;
+    qrScanning = true;
+    scanQRFrame();
+  } catch(e) {
+    alert('ບໍ່ສາມາດເຂົ້າເຖິງກ້ອງໄດ້ ກະລຸນາອະນຸຍາດການໃຊ້ງານກ້ອງ');
+  }
+}
+
+function stopQR() {
+  if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+  qrScanning = false;
+  document.getElementById('qrContainer').classList.remove('show');
+  const btn = document.getElementById('startQrBtn');
+  if (btn) { btn.textContent = '📷 ເປີດກ້ອງສະແກນ'; btn.onclick = startQR; }
+}
+
+function scanQRFrame() {
+  if (!qrScanning) return;
+  const video = document.getElementById('qrVideo');
+  const canvas = document.getElementById('qrCanvas');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) {
+      const extracted = extractId(code.data);
+      if (extracted) {
+        stopQR();
+        document.getElementById('qrResult').textContent = `✅ ພົບລະຫັດ: ${extracted}`;
+        searchById(extracted);
+        return;
+      }
+    }
+  }
+  requestAnimationFrame(scanQRFrame);
+}
+
+function uploadQR() { document.getElementById('qrFile').click(); }
+
+function processQRFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('qrCanvas');
+    canvas.width = img.width; canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) {
+      const extracted = extractId(code.data);
+      if (extracted) {
+        document.getElementById('qrResult').textContent = `✅ ພົບລະຫັດ: ${extracted}`;
+        searchById(extracted);
+      } else {
+        alert('❌ ບໍ່ພົບເລກລະຫັດ 13 ໂຕໃນ QR Code');
+      }
+    } else {
+      alert('❌ ບໍ່ສາມາດອ່ານ QR Code ໄດ້ ກະລຸນາລອງຮູບໃໝ່');
+    }
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function extractId(text) {
+  const match = text.match(/\b\d{13}\b/);
+  return match ? match[0] : null;
+}
+
+// ====== DELIVERY ======
+function selectRecipient(type) {
+  recipientType = type;
+  document.getElementById('selfOption').classList.toggle('selected', type === 'self');
+  document.getElementById('proxyOption').classList.toggle('selected', type === 'proxy');
+  document.getElementById('proxyInput').classList.toggle('show', type === 'proxy');
+}
+
+async function confirmDelivery() {
+  if (!foundData) return;
+  const proxyName = recipientType === 'proxy' ? document.getElementById('proxyName').value.trim() : '';
+  if (recipientType === 'proxy' && !proxyName) {
+    alert('⚠️ ກະລຸນາພິມຊື່ຜູ້ຮັບແທນ');
+    return;
+  }
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('lo-LA');
+  const timeStr = now.toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' });
+
+  const logRow = [
+    foundData.id,
+    `${foundData.firstName} ${foundData.lastName}`,
+    currentUser.name,
+    dateStr,
+    timeStr,
+    recipientType === 'self' ? 'ຮັບດ້ວຍຕົນເອງ' : 'ມີຄົນຮັບແທນ',
+    proxyName,
+    ''
+  ];
+
+  // Save to localStorage as backup
+  const key = `delivery_${Date.now()}`;
+  const record = { ...logRow, timestamp: now.toISOString() };
+  localStorage.setItem(key, JSON.stringify(record));
+  todayHistory.unshift({ id: foundData.id, name: `${foundData.firstName} ${foundData.lastName}`, staff: currentUser.name, date: dateStr, time: timeStr, recipient: logRow[5], proxy: proxyName });
+
+  // Show success popup
+  let detail = `ຊື່: ${foundData.firstName} ${foundData.lastName}\nເລກລະຫັດ: ${foundData.id}\nພະນັກງານ: ${currentUser.name}\nວັນທີ: ${dateStr} ${timeStr}\nຜູ້ຮັບ: ${logRow[5]}`;
+  if (proxyName) detail += `\nຊື່ຜູ້ຮັບແທນ: ${proxyName}`;
+  document.getElementById('popupDetail').innerHTML = detail.replace(/\n/g, '<br>');
+  document.getElementById('successPopup').classList.add('show');
+}
+
+function closePopup() {
+  document.getElementById('successPopup').classList.remove('show');
+  resetSearch();
+  loadHistory();
+}
+
+function resetSearch() {
+  foundData = null;
+  document.getElementById('foundCard').classList.remove('show');
+  document.getElementById('deliveryForm').classList.remove('show');
+  document.getElementById('manualId').value = '';
+  document.getElementById('idHint').textContent = '';
+  document.getElementById('proxyName').value = '';
+  document.getElementById('qrResult').textContent = '';
+  selectRecipient('self');
+}
+
+// ====== HISTORY ======
+function loadHistory() {
+  const list = document.getElementById('historyList');
+  if (todayHistory.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--gray);padding:20px;font-size:13px;">ຍັງບໍ່ມີປະຫວັດການຈັດສົ່ງ</div>';
+    return;
+  }
+  list.innerHTML = todayHistory.map(h => `
+    <div class="history-item">
+      <div class="history-name">${h.name}</div>
+      <div class="history-meta">
+        🆔 ${h.id}<br>
+        📅 ${h.date} ${h.time}<br>
+        👤 ${h.recipient}${h.proxy ? ` (${h.proxy})` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

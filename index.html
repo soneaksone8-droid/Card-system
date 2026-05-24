@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ລະບົບກວດສອບສະຖານະບັດປະຈຳຕົວດີຈິຕ້ອນ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #003087;
+    --secondary: #c8102e;
+    --gold: #FFD700;
+    --light: #f0f4ff;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --shadow: 0 10px 40px rgba(0,48,135,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans Lao', sans-serif;
+    background: linear-gradient(135deg, #001f5e 0%, #003087 40%, #c8102e 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Header */
+  .header {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 2px solid var(--gold);
+  }
+  .logo-img {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    object-fit: cover;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .header-text h1 {
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .header-text p {
+    color: var(--gold);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  /* Main */
+  .main {
+    flex: 1;
+    width: 100%;
+    max-width: 480px;
+    padding: 32px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Notice box */
+  .notice {
+    background: rgba(255,215,0,0.15);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .notice-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .notice p { color: var(--gold); font-size: 12.5px; line-height: 1.6; }
+
+  /* Search Card */
+  .search-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+  }
+  .search-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .input-group {
+    margin-bottom: 16px;
+  }
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'Noto Sans Lao', sans-serif;
+    transition: all 0.2s;
+    color: #1f2937;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0,48,135,0.1);
+  }
+  .btn-search {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary), #0052cc);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Noto Sans Lao', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .btn-search:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,48,135,0.3); }
+  .btn-search:active { transform: translateY(0); }
+  .btn-search.loading { opacity: 0.7; cursor: not-allowed; }
+
+  /* Result */
+  .result-card {
+    border-radius: 16px;
+    padding: 22px;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .result-card.success {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px solid var(--success);
+  }
+  .result-card.pending {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 2px solid var(--warning);
+  }
+  .result-card.delivered {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 2px solid #3b82f6;
+  }
+  .result-card.show { display: block; }
+  .result-status {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .result-status-text {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .result-card.success .result-status-text { color: var(--success); }
+  .result-card.pending .result-status-text { color: var(--warning); }
+  .result-card.delivered .result-status-text { color: #2563eb; }
+  .result-info { background: rgba(255,255,255,0.6); border-radius: 10px; padding: 14px; }
+  .result-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .result-row:last-child { border: none; }
+  .result-label { font-size: 13px; color: var(--gray); }
+  .result-value { font-size: 13px; font-weight: 600; color: #1f2937; text-align: right; max-width: 60%; }
+  .result-note {
+    margin-top: 12px;
+    font-size: 12px;
+    text-align: center;
+    color: var(--gray);
+  }
+
+  /* Footer */
+  .footer {
+    padding: 20px;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+  }
+
+  /* Spinner */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-img">🚔</div>
+  <div class="header-text">
+    <h1>ລະບົບກວດສອບສະຖານະ<br>ບັດປະຈຳຕົວດີຈິຕ້ອນ</h1>
+    <p>ປກສ ເມືອງເຊບັ້ງໄຟ</p>
+  </div>
+</div>
+
+<div class="main">
+  <div class="notice">
+    <div class="notice-icon">⚠️</div>
+    <p>ລະບົບນີ້ກວດສອບໄດ້ສະເພາະບຸກຄົນທີ່ມາດຳເນີນການຢູ່ <strong>ປກສ ເມືອງເຊບັ້ງໄຟ</strong> ເທົ່ານັ້ນ. ບຸກຄົນທີ່ເຮັດບັດຢູ່ເມືອງອື່ນ ຫຼື ແຂວງອື່ນ ບໍ່ສາມາດກວດສອບໄດ້.</p>
+  </div>
+
+  <div class="search-card">
+    <div class="search-title">🔍 ກວດສອບສະຖານະບັດ</div>
+    <div class="input-group">
+      <label>ຊື່</label>
+      <input type="text" id="firstName" placeholder="ພິມຊື່ຂອງທ່ານ...">
+    </div>
+    <div class="input-group">
+      <label>ນາມສະກຸນ</label>
+      <input type="text" id="lastName" placeholder="ພິມນາມສະກຸນຂອງທ່ານ...">
+    </div>
+    <div class="input-group">
+      <label>ເລກລະຫັດບຸກຄົນ (13 ໂຕເລກ) - ທາງເລືອກ</label>
+      <input type="text" id="idNumber" placeholder="ຕົວຢ່າງ: 1234567890123" maxlength="13" inputmode="numeric">
+    </div>
+    <button class="btn-search" id="searchBtn" onclick="searchCard()">
+      <span>🔍 ກວດສອບສະຖານະ</span>
+    </button>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-status" id="resultIcon"></div>
+    <div class="result-status-text" id="resultStatusText"></div>
+    <div class="result-info">
+      <div class="result-row">
+        <span class="result-label">ຊື່-ນາມສະກຸນ</span>
+        <span class="result-value" id="resultName"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ເລກລະຫັດ</span>
+        <span class="result-value" id="resultId"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ສະຖານະ</span>
+        <span class="result-value" id="resultStatus"></span>
+      </div>
+    </div>
+    <div class="result-note" id="resultNote"></div>
+  </div>
+</div>
+
+<div class="footer">
+  © 2026 ປກສ ເມືອງເຊບັ້ງໄຟ · ລະບົບກວດສອບບັດປະຈຳຕົວດີຈິຕ້ອນ
+</div>
+
+<script>
+const SHEET_ID = '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI';
+const SHEET_NAME = 'Cards';
+
+async function fetchData() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
+  return json.table.rows.map(row => ({
+    id: row.c[0]?.v?.toString().trim() || '',
+    firstName: row.c[1]?.v?.toString().trim() || '',
+    lastName: row.c[2]?.v?.toString().trim() || '',
+    status: row.c[3]?.v?.toString().trim() || '',
+  }));
+}
+
+async function searchCard() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const idNumber = document.getElementById('idNumber').value.trim();
+
+  if (!firstName && !lastName && !idNumber) {
+    alert('ກະລຸນາພິມຊື່ ຫຼື ເລກລະຫັດກ່ອນ');
+    return;
+  }
+
+  const btn = document.getElementById('searchBtn');
+  btn.innerHTML = '<div class="spinner"></div><span>ກຳລັງຄົ້ນຫາ...</span>';
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const data = await fetchData();
+    let found = null;
+
+    if (idNumber) {
+      found = data.find(r => r.id === idNumber);
+    } else {
+      found = data.find(r =>
+        r.firstName === firstName && r.lastName === lastName
+      );
+    }
+
+    showResult(found, firstName, lastName, idNumber);
+  } catch (e) {
+    alert('ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ');
+  }
+
+  btn.innerHTML = '<span>🔍 ກວດສອບສະຖານະ</span>';
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
+
+function showResult(found, fn, ln, id) {
+  const card = document.getElementById('resultCard');
+  card.className = 'result-card';
+
+  if (!found) {
+    card.classList.add('pending', 'show');
+    document.getElementById('resultIcon').textContent = '⏳';
+    document.getElementById('resultStatusText').textContent = 'ຢູ່ໃນຂະບວນການຈັດພີມ';
+    document.getElementById('resultName').textContent = fn && ln ? `${fn} ${ln}` : (id || '-');
+    document.getElementById('resultId').textContent = id || '-';
+    document.getElementById('resultStatus').textContent = 'ຍັງບໍ່ແລ້ວ';
+    document.getElementById('resultNote').textContent = 'ບັດຂອງທ່ານຍັງຢູ່ໃນຂະບວນການຈັດພີມ ກະລຸນາລໍຖ້າການແຈ້ງການ';
+    return;
+  }
+
+  const status = found.status;
+  if (status.includes('ຈັດສົ່ງສຳເລັດ')) {
+    card.classList.add('delivered', 'show');
+    document.getElementById('resultIcon').textContent = '📦';
+    document.getElementById('resultStatusText').textContent = 'ຈັດສົ່ງສຳເລັດແລ້ວ';
+    document.getElementById('resultNote').textContent = 'ບັດຂອງທ່ານໄດ້ຖືກຈັດສົ່ງສຳເລັດແລ້ວ';
+  } else if (status.includes('ພີມບັດສຳເລັດ')) {
+    card.classList.add('success', 'show');
+    document.getElementById('resultIcon').textContent = '✅';
+    document.getElementById('resultStatusText').textContent = 'ບັດພ້ອມແລ້ວ! ເຂົ້າຮັບໄດ້ເລີຍ';
+    document.getElementById('resultNote').textContent = 'ກະລຸນານຳເອກະສານຢືນຢັນຕົວຕົນມາດ້ວຍ';
+  } else if (status.includes('ບັດມີບັນຫາ')) {
+    card.classList.add('pending', 'show');
+    document.getElementById('resultIcon').textContent = '❌';
+    document.getElementById('resultStatusText').textContent = 'ບັດມີບັນຫາ ກະລຸນາຕິດຕໍ່ ປກສ';
+    document.getElementById('resultNote').textContent = 'ກະລຸນາຕິດຕໍ່ ປກສ ເມືອງເຊບັ້ງໄຟ ໂດຍກົງ';
+  } else {
+    card.classList.add('pending', 'show');
+    document.getElementById('resultIcon').textContent = '⏳';
+    document.getElementById('resultStatusText').textContent = 'ຢູ່ໃນຂະບວນການ';
+    document.getElementById('resultNote').textContent = '';
+  }
+
+  document.getElementById('resultName').textContent = `${found.firstName} ${found.lastName}`;
+  document.getElementById('resultId').textContent = found.id;
+  document.getElementById('resultStatus').textContent = found.status;
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchCard();
+});
+
+// ID number - numbers only
+document.getElementById('idNumber').addEventListener('input', function() {
+  this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+</body>
+</html>
