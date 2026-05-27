@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ທົດສອບ QR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+body{font-family:sans-serif;padding:20px;background:#f0f4ff;}
+.card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+button{width:100%;padding:14px;background:#003087;color:white;border:none;border-radius:10px;font-size:16px;cursor:pointer;margin-bottom:10px;}
+#result{background:#1f2937;color:#00ff88;padding:16px;border-radius:10px;font-size:14px;white-space:pre-wrap;word-break:break-all;min-height:80px;margin-top:10px;}
+video{width:100%;border-radius:10px;}
+canvas{display:none;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🔍 ທົດສອບ QR Scanner</h2>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:16px;">ອ່ານຂໍ້ມູນ RAW ຈາກ QR Code</p>
+  
+  <button onclick="startCam()">📷 ເປີດກ້ອງສະແກນ</button>
+  <button onclick="document.getElementById('fileIn').click()" style="background:#059669;">📁 ເລືອກຮູບ</button>
+  <input type="file" id="fileIn" accept="image/*" style="display:none" onchange="readFile(event)">
+  <button onclick="stopCam()" style="background:#dc2626;">⏹️ ປິດກ້ອງ</button>
+  
+  <video id="vid" playsinline autoplay muted style="display:none;margin-top:10px;"></video>
+  <canvas id="cv"></canvas>
+  
+  <div style="margin-top:12px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">ຜົນທີ່ໄດ້:</div>
+    <div id="result">ລໍຖ້າ...</div>
+  </div>
+</div>
+
+<script>
+let stream = null, scanning = false;
+
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {facingMode: {ideal:'environment'}, width:{ideal:1280}, height:{ideal:720}}
+    });
+    const v = document.getElementById('vid');
+    v.srcObject = stream;
+    v.style.display = 'block';
+    await v.play();
+    scanning = true;
+    scanLoop();
+    show('📷 ກ້ອງເປີດແລ້ວ ສ່ອງໃສ່ QR Code...');
+  } catch(e) {
+    show('❌ ກ້ອງ Error: ' + e.message);
+  }
+}
+
+function stopCam() {
+  scanning = false;
+  if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  document.getElementById('vid').style.display = 'none';
+  show('ປິດກ້ອງແລ້ວ');
+}
+
+function scanLoop() {
+  if (!scanning) return;
+  const v = document.getElementById('vid');
+  const c = document.getElementById('cv');
+  if (v.readyState === v.HAVE_ENOUGH_DATA && v.videoWidth > 0) {
+    c.width = v.videoWidth;
+    c.height = v.videoHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(v, 0, 0);
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    const code = jsQR(img.data, img.width, img.height, {inversionAttempts:'attemptBoth'});
+    if (code) {
+      stopCam();
+      const raw = code.data;
+      const parts = raw.split('|');
+      const first13 = parts[0].replace(/\D/g,'').substring(0,13);
+      const anyMatch = raw.match(/\d{13}/);
+      show(
+        '✅ ສະແກນໄດ້!\n\n' +
+        '📋 RAW DATA:\n' + raw + '\n\n' +
+        '🔢 ສ່ວນທີ 1 (ກ່ອນ |): ' + parts[0] + '\n' +
+        '🆔 13 ໂຕທຳອິດ: ' + first13 + '\n' +
+        '🔍 Match \d{13}: ' + (anyMatch ? anyMatch[0] : 'ບໍ່ພົບ') + '\n' +
+        '📊 ຈຳນວນສ່ວນ (split|): ' + parts.length
+      );
+      return;
+    }
+  }
+  requestAnimationFrame(scanLoop);
+}
+
+function readFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  show('⏳ ກຳລັງອ່ານ...');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.getElementById('cv');
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, c.width, c.height);
+      const code = jsQR(imgData.data, imgData.width, imgData.height, {inversionAttempts:'attemptBoth'});
+      if (code) {
+        const raw = code.data;
+        const parts = raw.split('|');
+        const first13 = parts[0].replace(/\D/g,'').substring(0,13);
+        const anyMatch = raw.match(/\d{13}/);
+        show(
+          '✅ ອ່ານຮູບໄດ້!\n\n' +
+          '📋 RAW DATA:\n' + raw + '\n\n' +
+          '🔢 ສ່ວນທີ 1: ' + parts[0] + '\n' +
+          '🆔 13 ໂຕ: ' + first13 + '\n' +
+          '🔍 Match: ' + (anyMatch ? anyMatch[0] : 'ບໍ່ພົບ')
+        );
+      } else {
+        show('❌ ອ່ານ QR ບໍ່ໄດ້\nຂະໜາດຮູບ: ' + img.width + 'x' + img.height);
+      }
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function show(msg) {
+  document.getElementById('result').textContent = msg;
+}
+</script>
+</body>
+</html>
