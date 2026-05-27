@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="version" content="202605271025">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ລະບົບກວດສອບສະຖານະບັດປະຈຳຕົວດີຈິຕ້ອນ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#003087;--gold:#FFD700;--white:#fff;--gray:#6b7280;--success:#059669;--warning:#d97706;--danger:#dc2626;--shadow:0 10px 40px rgba(0,48,135,0.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans Lao',sans-serif;background:linear-gradient(135deg,#001f5e 0%,#003087 40%,#c8102e 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.header{width:100%;background:rgba(0,0,0,0.3);backdrop-filter:blur(10px);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:2px solid var(--gold);}
+.logo{width:60px;height:60px;border-radius:50%;border:2px solid var(--gold);background:white;overflow:hidden;flex-shrink:0;}
+.logo img{width:100%;height:100%;object-fit:cover;}
+.header-text h1{color:var(--white);font-size:14px;font-weight:700;line-height:1.4;}
+.header-text p{color:var(--gold);font-size:11px;margin-top:2px;}
+.main{flex:1;width:100%;max-width:480px;padding:20px 16px;display:flex;flex-direction:column;gap:14px;}
+.notice{background:rgba(255,215,0,0.15);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;display:flex;gap:10px;}
+.notice p{color:var(--gold);font-size:12px;line-height:1.7;}
+.card{background:var(--white);border-radius:20px;padding:22px 18px;box-shadow:var(--shadow);}
+.card-title{font-size:17px;font-weight:700;color:var(--primary);text-align:center;margin-bottom:18px;}
+.input-group{margin-bottom:13px;}
+.input-group label{display:block;font-size:13px;font-weight:600;color:var(--primary);margin-bottom:5px;}
+.input-group label span{color:var(--danger);}
+.input-group input{width:100%;padding:13px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:'Noto Sans Lao',sans-serif;transition:all 0.2s;}
+.input-group input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,48,135,0.1);}
+.input-group input.err{border-color:var(--danger);}
+.err-msg{font-size:11px;color:var(--danger);margin-top:3px;display:none;}
+.err-msg.show{display:block;}
+.divider{display:flex;align-items:center;gap:10px;margin:4px 0 10px;}
+.divider span{font-size:11px;color:var(--gray);white-space:nowrap;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e5e7eb;}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--primary),#0052cc);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;transition:all 0.3s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,48,135,0.3);}
+.btn:disabled{opacity:0.7;cursor:not-allowed;transform:none;}
+.result{border-radius:16px;padding:18px;display:none;animation:fadeIn 0.4s ease;}
+.result.show{display:block;}
+.result.success{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--success);}
+.result.pending{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid var(--warning);}
+.result.delivered{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #3b82f6;}
+.result.error{background:linear-gradient(135deg,#fff1f2,#ffe4e6);border:2px solid var(--danger);}
+.r-icon{font-size:38px;text-align:center;margin-bottom:6px;}
+.r-status{font-size:18px;font-weight:700;text-align:center;margin-bottom:12px;}
+.result.success .r-status{color:var(--success);}
+.result.pending .r-status{color:var(--warning);}
+.result.delivered .r-status{color:#2563eb;}
+.result.error .r-status{color:var(--danger);}
+.r-info{background:rgba(255,255,255,0.6);border-radius:10px;padding:12px;}
+.r-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.06);}
+.r-row:last-child{border:none;}
+.r-label{font-size:12px;color:var(--gray);}
+.r-value{font-size:13px;font-weight:700;color:#1f2937;text-align:right;max-width:65%;}
+.r-note{margin-top:10px;font-size:12px;text-align:center;color:var(--gray);line-height:1.5;}
+.footer{padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:11px;}
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"><img src="https://soneaksone8-droid.github.io/Card-system/logo.png" onerror="this.parentElement.innerHTML='<div style=font-size:32px;text-align:center;line-height:60px>🚔</div>'"></div>
+  <div class="header-text">
+    <h1>ລະບົບກວດສອບສະຖານະ<br>ບັດປະຈຳຕົວດີຈິຕ້ອນ</h1>
+    <p>ປກສ ເມືອງເຊບັ້ງໄຟ</p>
+  </div>
+</div>
+
+<div class="main">
+  <div class="notice">
+    <div style="font-size:18px;flex-shrink:0;margin-top:2px;">⚠️</div>
+    <p>ລະບົບນີ້ກວດສອບໄດ້ສະເພາະບຸກຄົນທີ່ມາດຳເນີນການຢູ່ <strong>ປກສ ເມືອງເຊບັ້ງໄຟ</strong> ເທົ່ານັ້ນ. ບຸກຄົນທີ່ເຮັດບັດຢູ່ເມືອງອື່ນ ຫຼື ແຂວງອື່ນ ບໍ່ສາມາດກວດສອບໄດ້.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔍 ກວດສອບສະຖານະບັດ</div>
+
+    <div class="input-group">
+      <label>ຊື່ <span>*</span></label>
+      <input type="text" id="firstName" placeholder="ພິມຊື່ຂອງທ່ານ..." oninput="clearErr('fnErr')" onblur="applyNormalize('firstName')">
+      <div class="err-msg" id="fnErr">⚠️ ກະລຸນາພິມຊື່</div>
+    </div>
+
+    <div class="input-group">
+      <label>ນາມສະກຸນ <span>*</span></label>
+      <input type="text" id="lastName" placeholder="ພິມນາມສະກຸນຂອງທ່ານ..." oninput="clearErr('lnErr')" onblur="applyNormalize('lastName')">
+      <div class="err-msg" id="lnErr">⚠️ ກະລຸນາພິມນາມສະກຸນ</div>
+    </div>
+
+    <div class="divider"><span>ຫຼື ຄົ້ນຫາດ້ວຍເລກລະຫັດ</span></div>
+
+    <div class="input-group">
+      <label>ເລກລະຫັດ 13 ໂຕ</label>
+      <input type="text" id="idNum" placeholder="1234567890123" maxlength="13" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'');clearErr('fnErr');clearErr('lnErr')">
+    </div>
+
+    <button class="btn" id="searchBtn" onclick="doSearch()">
+      <span id="btnText">🔍 ກວດສອບ</span>
+    </button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="r-icon" id="rIcon"></div>
+    <div class="r-status" id="rStatus"></div>
+    <div class="r-info">
+      <div class="r-row"><span class="r-label">ຊື່-ນາມສະກຸນ</span><span class="r-value" id="rName"></span></div>
+      <div class="r-row"><span class="r-label">ເລກລະຫັດ</span><span class="r-value" id="rId"></span></div>
+      <div class="r-row"><span class="r-label">ສະຖານະ</span><span class="r-value" id="rStat"></span></div>
+    </div>
+    <div class="r-note" id="rNote"></div>
+  </div>
+</div>
+
+<div class="footer">© 2026 ປກສ ເມືອງເຊບັ້ງໄຟ · ລະບົບກວດສອບບັດປະຈຳຕົວດີຈິຕ້ອນ</div>
+
+<script>
+const SHEET_ID = '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI';
+
+// ====== NORMALIZE ======
+function normalize(text) {
+  if (!text) return '';
+  let t = text.trim();
+  // ລຶບຄຳນຳໜ້າ
+  t = t.replace(/^(ທ້າວ|ນາງສາວ|ນາງ|ທ\.|ທ)\s+/u, '');
+  // ປັບໂຕຄວບ
+  t = t.replace(/ຫນ/g, 'ໜ');
+  t = t.replace(/ຫມ/g, 'ໝ');
+  t = t.replace(/ຫລ/g, 'ຫຼ');
+  return t.trim();
+}
+
+function applyNormalize(id) {
+  const el = document.getElementById(id);
+  el.value = normalize(el.value);
+}
+
+function clearErr(id) {
+  document.getElementById(id).classList.remove('show');
+  const inputId = id === 'fnErr' ? 'firstName' : 'lastName';
+  document.getElementById(inputId).classList.remove('err');
+}
+
+// ====== FETCH ======
+async function fetchCards() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Cards`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+  const json = JSON.parse(m[1]);
+  return json.table.rows.slice(1).map(r => ({
+    id: (r.c[0]?.v ?? '').toString().trim(),
+    firstName: normalize((r.c[1]?.v ?? '').toString()),
+    lastName: normalize((r.c[2]?.v ?? '').toString()),
+    status: (r.c[3]?.v ?? '').toString().trim(),
+  })).filter(r => r.id || r.firstName);
+}
+
+// ====== SEARCH ======
+async function doSearch() {
+  const idRaw = document.getElementById('idNum').value.trim();
+  let fn = normalize(document.getElementById('firstName').value);
+  let ln = normalize(document.getElementById('lastName').value);
+
+  // ຖ້າໃຊ້ ID → ບໍ່ຕ້ອງການຊື່
+  if (!idRaw) {
+    let hasErr = false;
+    if (!fn) {
+      document.getElementById('fnErr').classList.add('show');
+      document.getElementById('firstName').classList.add('err');
+      hasErr = true;
+    }
+    if (!ln) {
+      document.getElementById('lnErr').classList.add('show');
+      document.getElementById('lastName').classList.add('err');
+      hasErr = true;
+    }
+    if (hasErr) return;
+  }
+
+  // Update normalized values in inputs
+  document.getElementById('firstName').value = fn;
+  document.getElementById('lastName').value = ln;
+
+  const btn = document.getElementById('searchBtn');
+  document.getElementById('btnText').innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+  document.getElementById('result').className = 'result';
+
+  try {
+    const data = await fetchCards();
+    let found = null;
+
+    if (idRaw) {
+      found = data.find(r => r.id === idRaw);
+    } else {
+      found = data.find(r =>
+        r.firstName.toLowerCase() === fn.toLowerCase() &&
+        r.lastName.toLowerCase() === ln.toLowerCase()
+      );
+    }
+
+    showResult(found, fn, ln, idRaw);
+  } catch(e) {
+    alert('ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່');
+  }
+
+  document.getElementById('btnText').textContent = '🔍 ກວດສອບ';
+  btn.disabled = false;
+}
+
+// ====== SHOW RESULT ======
+function showResult(found, fn, ln, id) {
+  const el = document.getElementById('result');
+  if (!found) {
+    el.className = 'result pending show';
+    document.getElementById('rIcon').textContent = '⏳';
+    document.getElementById('rStatus').textContent = 'ຢູ່ໃນຂະບວນການຈັດພີມ';
+    document.getElementById('rName').textContent = fn && ln ? `${fn} ${ln}` : (fn||ln||id||'-');
+    document.getElementById('rId').textContent = id || '-';
+    document.getElementById('rStat').textContent = 'ຍັງບໍ່ແລ້ວ';
+    document.getElementById('rNote').textContent = 'ບັດຂອງທ່ານຍັງຢູ່ໃນຂະບວນການ ກະລຸນາລໍຖ້າການແຈ້ງການ';
+    return;
+  }
+
+  document.getElementById('rName').textContent = `${found.firstName} ${found.lastName}`;
+  document.getElementById('rId').textContent = found.id || '-';
+  document.getElementById('rStat').textContent = found.status;
+
+  if (found.status.includes('ຈັດສົ່ງສຳເລັດ')) {
+    el.className = 'result delivered show';
+    document.getElementById('rIcon').textContent = '📦';
+    document.getElementById('rStatus').textContent = 'ຈັດສົ່ງສຳເລັດແລ້ວ';
+    document.getElementById('rNote').textContent = 'ບັດຂອງທ່ານໄດ້ຖືກຈັດສົ່ງສຳເລັດແລ້ວ';
+  } else if (found.status.includes('ພີມບັດສຳເລັດ')) {
+    el.className = 'result success show';
+    document.getElementById('rIcon').textContent = '✅';
+    document.getElementById('rStatus').textContent = 'ບັດພ້ອມແລ້ວ! ເຂົ້າຮັບໄດ້ເລີຍ';
+    document.getElementById('rNote').textContent = '📍 ກະລຸນານຳເອກະສານຢືນຢັນຕົວຕົນມາດ້ວຍ';
+  } else if (found.status.includes('ບັດມີບັນຫາ')) {
+    el.className = 'result error show';
+    document.getElementById('rIcon').textContent = '❌';
+    document.getElementById('rStatus').textContent = 'ບັດມີບັນຫາ';
+    document.getElementById('rNote').textContent = 'ກະລຸນາຕິດຕໍ່ ປກສ ເມືອງເຊບັ້ງໄຟ ໂດຍກົງ';
+  } else {
+    el.className = 'result pending show';
+    document.getElementById('rIcon').textContent = '⏳';
+    document.getElementById('rStatus').textContent = 'ຢູ່ໃນຂະບວນການ';
+    document.getElementById('rNote').textContent = '';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+document.getElementById('idNum').addEventListener('input', function() {
+  if (this.value) {
+    document.getElementById('fnErr').classList.remove('show');
+    document.getElementById('lnErr').classList.remove('show');
+    document.getElementById('firstName').classList.remove('err');
+    document.getElementById('lastName').classList.remove('err');
+  }
+});
+</script>
+</body>
+</html>
