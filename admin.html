@@ -2,6 +2,12 @@
 <html lang="lo">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#003087">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ຈັດສົ່ງບັດ">
+<link rel="apple-touch-icon" href="logo.png">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -126,6 +132,8 @@
   .popup-msg { font-size: 13px; color: var(--gray); margin-bottom: 18px; line-height: 1.6; }
   .btn-ok { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: 'Noto Sans Lao', sans-serif; cursor: pointer; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -190,6 +198,18 @@
           <div class="stat-num" id="problemCount">-</div>
           <div class="stat-label">ມີບັນຫາ</div>
         </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="finance-card" style="margin-bottom:14px;">
+        <div class="finance-title">📈 ສະຖິຕິການຈັດສົ່ງ</div>
+        <canvas id="deliveryChart" height="180"></canvas>
+      </div>
+
+      <!-- PDF BUTTONS -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button onclick="exportPDF('delivery')" style="flex:1;padding:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;">📄 PDF ການຈັດສົ່ງ</button>
+        <button onclick="exportPDF('finance')" style="flex:1;padding:12px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;">💰 PDF ການເງິນ</button>
       </div>
 
       <div class="finance-card">
@@ -410,6 +430,7 @@ function updateStats() {
   if (feeLabel) feeLabel.textContent = `ລາຍຮັບລວມ (${FEE.toLocaleString()}/ບັດ)`;
   if (centerLabel) centerLabel.textContent = `ສ່ວນສູນກາງ (${CENTER.toLocaleString()}/ບັດ)`;
   if (localLabel) localLabel.textContent = `ສ່ວນທ້ອງຖິ່ນ (${LOCAL.toLocaleString()}/ບັດ)`;
+  renderChart();
 
   // Finance tab
   const localTotal = total * LOCAL;
@@ -645,6 +666,196 @@ function showPopup(icon, title, msg) {
   document.getElementById('popup').classList.add('show');
 }
 function closePopup() { document.getElementById('popup').classList.remove('show'); }
+
+// ====== CHART ======
+let chartInstance = null;
+
+function renderChart() {
+  const ctx = document.getElementById('deliveryChart');
+  if (!ctx) return;
+  const delivered = allCards.filter(c => c.status.includes('ຈັດສົ່ງສຳເລັດ')).length;
+  const ready = allCards.filter(c => c.status.includes('ພີມບັດສຳເລັດ')).length;
+  const problem = allCards.filter(c => c.status.includes('ບັດມີບັນຫາ')).length;
+  const pending = allCards.length - delivered - ready - problem;
+
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['ຈັດສົ່ງສຳເລັດ', 'ພ້ອມຈັດສົ່ງ', 'ລໍຖ້າ', 'ມີບັນຫາ'],
+      datasets: [{
+        data: [delivered, ready, pending, problem],
+        backgroundColor: ['#059669', '#2563eb', '#d97706', '#dc2626'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } }
+      }
+    }
+  });
+}
+
+// ====== PDF EXPORT ======
+async function exportPDF(type) {
+  const { jsPDF } = window.jspdf;
+  if (!jsPDF) { alert('PDF library ໂຫຼດບໍ່ສຳເລັດ'); return; }
+  
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('lo-LA');
+  const total = allCards.length;
+  const delivered = allCards.filter(c => c.status.includes('ຈັດສົ່ງສຳເລັດ')).length;
+  const ready = allCards.filter(c => c.status.includes('ພີມບັດສຳເລັດ')).length;
+  const problem = allCards.filter(c => c.status.includes('ບັດມີບັນຫາ')).length;
+  
+  // Header
+  doc.setFillColor(0, 48, 135);
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.text('Lao PDR - Police', 105, 12, {align: 'center'});
+  doc.setFontSize(11);
+  doc.text('Sebangfai District - Digital ID Card System', 105, 20, {align: 'center'});
+  doc.setFontSize(9);
+  doc.text(`Generated: ${dateStr} | By: ${currentAdmin?.name || 'Admin'}`, 105, 28, {align: 'center'});
+
+  doc.setTextColor(0, 0, 0);
+  let y = 45;
+
+  if (type === 'delivery') {
+    doc.setFontSize(13);
+    doc.setTextColor(0, 48, 135);
+    doc.text('DELIVERY REPORT', 105, y, {align: 'center'});
+    y += 10;
+
+    // Summary boxes
+    doc.setFontSize(9);
+    const boxes = [
+      {label: 'Total Cards', val: total, color: [0,48,135]},
+      {label: 'Delivered', val: delivered, color: [5,150,105]},
+      {label: 'Pending', val: ready, color: [37,99,235]},
+      {label: 'Problem', val: problem, color: [220,38,38]},
+    ];
+    boxes.forEach((b, i) => {
+      const x = 15 + (i * 45);
+      doc.setFillColor(...b.color);
+      doc.roundedRect(x, y, 42, 18, 2, 2, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(7); doc.text(b.label, x+21, y+7, {align:'center'});
+      doc.setFontSize(14); doc.text(b.val.toString(), x+21, y+14, {align:'center'});
+    });
+    y += 26;
+    doc.setTextColor(0,0,0);
+
+    // Table header
+    doc.setFillColor(240,244,255);
+    doc.rect(15, y, 180, 8, 'F');
+    doc.setFontSize(8); doc.setTextColor(0,48,135);
+    doc.text('No.', 18, y+5.5);
+    doc.text('ID Number', 30, y+5.5);
+    doc.text('Name', 75, y+5.5);
+    doc.text('Status', 140, y+5.5);
+    doc.text('Date', 170, y+5.5);
+    y += 9;
+
+    // Table rows
+    doc.setTextColor(0,0,0); doc.setFontSize(7);
+    allCards.slice(0, 50).forEach((c, i) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      if (i % 2 === 0) { doc.setFillColor(250,250,250); doc.rect(15, y-1, 180, 7, 'F'); }
+      doc.text((i+1).toString(), 18, y+4);
+      doc.text(c.id.substring(0,13), 30, y+4);
+      doc.text(`${c.firstName} ${c.lastName}`.substring(0,25), 75, y+4);
+      const st = c.status.includes('ຈັດສົ່ງ') ? 'Delivered' : c.status.includes('ພີມ') ? 'Ready' : c.status.includes('ບັນຫາ') ? 'Problem' : 'Pending';
+      doc.text(st, 140, y+4);
+      doc.text(c.date || '-', 170, y+4);
+      y += 7;
+    });
+
+  } else {
+    // Finance PDF
+    doc.setFontSize(13); doc.setTextColor(0,48,135);
+    doc.text('FINANCE REPORT', 105, y, {align: 'center'});
+    y += 12;
+
+    const localTotal = total * LOCAL;
+    const totalWithdrawn = withdrawHistory.reduce((s,w) => s + (Number(w.amount)||0), 0);
+    const remaining = localTotal - totalWithdrawn;
+
+    const rows = [
+      ['Total Cards', `${total.toLocaleString()} cards`],
+      ['Fee per Card', `${FEE.toLocaleString()} KIP`],
+      ['Total Revenue', `${(total * FEE).toLocaleString()} KIP`],
+      ['Center Share (20,000/card)', `${(total * CENTER).toLocaleString()} KIP`],
+      ['Local Share (10,000/card)', `${localTotal.toLocaleString()} KIP`],
+      ['Total Withdrawn', `${totalWithdrawn.toLocaleString()} KIP`],
+      ['Remaining Balance', `${remaining.toLocaleString()} KIP`],
+    ];
+
+    rows.forEach((r, i) => {
+      const bg = i === rows.length-1 ? [236,253,245] : i%2===0 ? [240,244,255] : [255,255,255];
+      doc.setFillColor(...bg);
+      doc.rect(15, y, 180, 10, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(i===rows.length-1?5:0, i===rows.length-1?150:0, i===rows.length-1?105:0);
+      doc.text(r[0], 20, y+7);
+      doc.setFontSize(10);
+      doc.text(r[1], 185, y+7, {align:'right'});
+      y += 11;
+    });
+
+    y += 10;
+    doc.setFontSize(10); doc.setTextColor(0,48,135);
+    doc.text('WITHDRAWAL HISTORY', 15, y); y += 8;
+
+    if (withdrawHistory.length === 0) {
+      doc.setFontSize(9); doc.setTextColor(100,100,100);
+      doc.text('No withdrawal records', 15, y);
+    } else {
+      doc.setFillColor(240,244,255); doc.rect(15, y, 180, 8, 'F');
+      doc.setFontSize(8); doc.setTextColor(0,48,135);
+      doc.text('Date', 18, y+5.5); doc.text('Amount (KIP)', 60, y+5.5);
+      doc.text('To', 110, y+5.5); doc.text('By', 155, y+5.5);
+      y += 9;
+      doc.setTextColor(0,0,0); doc.setFontSize(7);
+      withdrawHistory.slice(0,20).forEach((w,i) => {
+        if (i%2===0) { doc.setFillColor(250,250,250); doc.rect(15,y-1,180,7,'F'); }
+        doc.text(w.date||'-', 18, y+4);
+        doc.text(Number(w.amount).toLocaleString(), 60, y+4);
+        doc.text((w.to||'-').substring(0,20), 110, y+4);
+        doc.text((w.by||'-').substring(0,15), 155, y+4);
+        y += 7;
+      });
+    }
+  }
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i=1; i<=pageCount; i++) {
+    doc.setPage(i);
+    doc.setFillColor(240,244,255);
+    doc.rect(0, 285, 210, 12, 'F');
+    doc.setFontSize(7); doc.setTextColor(100,100,100);
+    doc.text('Sebangfai District Police - Digital ID Card System', 105, 291, {align:'center'});
+    doc.text(`Page ${i} of ${pageCount}`, 195, 291, {align:'right'});
+  }
+
+  const filename = type==='delivery' ? `Delivery_Report_${dateStr.replace(/\//g,'-')}.pdf` : `Finance_Report_${dateStr.replace(/\//g,'-')}.pdf`;
+  doc.save(filename);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', {scope: '/Card-system/'})
+      .then(r => console.log('SW registered'))
+      .catch(e => console.log('SW error:', e));
+  });
+}
 </script>
 </body>
 </html>
