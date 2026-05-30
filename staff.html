@@ -663,12 +663,8 @@ async function loadHistory() {
       recipient: (r.c[5]?.v??'').toString().trim(),
       proxy: (r.c[6]?.v??'').toString().trim(),
     })).filter(r => r.id);
-    // Show all for admin role, filter by staff name for staff role
-    if (currentUser.role.toLowerCase() === 'admin') {
-      allHistory = all.reverse();
-    } else {
-      allHistory = all.filter(h => h.staff === currentUser.name).reverse();
-    }
+    // Show all delivery records for everyone
+    allHistory = all.reverse();
     renderHistory(allHistory);
   } catch(e) {
     document.getElementById('historyList').innerHTML = '<div style="text-align:center;color:var(--danger);font-size:13px;padding:16px;">ເກີດຂໍ້ຜິດພາດ ກົດໂຫຼດໃໝ່</div>';
