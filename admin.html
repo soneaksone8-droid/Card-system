@@ -360,7 +360,7 @@ async function doLogin() {
       document.getElementById('topbarUser').textContent = `Admin: ${found.name}`;
       await loadSettings();
       loadAll();
-      loadWithdrawHistory();
+      await loadWithdrawHistory();
     } else {
       document.getElementById('loginErr').style.display = 'block';
       setTimeout(() => document.getElementById('loginErr').style.display = 'none', 3000);
@@ -532,14 +532,34 @@ async function loadDeliveryLog() {
 }
 
 // ====== WITHDRAW ======
-function loadWithdrawHistory() {
-  const saved = localStorage.getItem('withdrawHistory');
-  withdrawHistory = saved ? JSON.parse(saved) : [];
-  renderWithdrawHistory();
+async function loadWithdrawHistory() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Withdraw_Log`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    const json = JSON.parse(m[1]);
+    withdrawHistory = json.table.rows.slice(1).map(r => ({
+      date: (r.c[0]?.v ?? '').toString().trim(),
+      time: '',
+      amount: Number((r.c[1]?.v ?? '0')),
+      to: (r.c[2]?.v ?? '').toString().trim(),
+      by: (r.c[3]?.v ?? '').toString().trim(),
+      note: (r.c[4]?.v ?? '').toString().trim(),
+      file: null,
+      fileName: null,
+    })).filter(r => r.amount > 0);
+    renderWithdrawHistory();
+    updateStats();
+  } catch(e) {
+    console.error('loadWithdrawHistory error:', e);
+    withdrawHistory = [];
+    renderWithdrawHistory();
+  }
 }
 
 function saveWithdrawHistory() {
-  localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+  // No longer using localStorage - data saved to Sheets via Apps Script
 }
 
 function toggleWithdrawForm() {
@@ -606,15 +626,14 @@ function saveWithdraw() {
     try {
       await fetch(APPS_SCRIPT, {
         method: 'POST',
+        mode: 'no-cors',
         body: JSON.stringify({
           action: 'withdraw',
-          date: dateStr,
-          time: timeStr,
+          date: dateStr + ' ' + timeStr,
           amount: amount,
           to: to,
           by: currentAdmin.name,
           note: note,
-          confirmed: '',
         })
       });
     } catch(e) { console.error('Apps Script error:', e); }
