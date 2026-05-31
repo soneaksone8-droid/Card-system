@@ -345,7 +345,7 @@ async function doLogin() {
       document.getElementById('appPage').style.display = 'block';
       document.getElementById('topbarUser').textContent = `ສະບາຍດີ: ${found.name}`;
       loadHistory();
-      loadOverdueData();
+      setTimeout(() => loadOverdueData(), 500);
     } else {
       document.getElementById('loginError').style.display = 'block';
       setTimeout(() => document.getElementById('loginError').style.display='none', 3000);
@@ -950,12 +950,15 @@ async function loadOverdueData() {
 
     // Update tab badge
     const badge = document.getElementById('overdueCount');
-    if (total > 0) {
+    const tab = document.getElementById('overdueTab');
+    if (total > 0 && badge) {
       badge.textContent = total;
       badge.style.display = 'inline';
-      document.getElementById('overdueTab').style.background = '#fee2e2';
-      document.getElementById('overdueTab').style.borderColor = '#dc2626';
-      document.getElementById('overdueTab').style.color = '#dc2626';
+    }
+    if (total > 0 && tab) {
+      tab.style.background = '#fee2e2';
+      tab.style.borderColor = '#dc2626';
+      tab.style.color = '#dc2626';
     }
 
     // Show login popup if overdue
@@ -968,41 +971,63 @@ async function loadOverdueData() {
 }
 
 function showOverduePopup(total, c60, c30, c15) {
-  const overlay = document.createElement('div');
-  overlay.id = 'overduePopupOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  
-  const rows = allOverdue.slice(0, 20).map(c => {
-    const icon = c.days > 60 ? '🔴' : c.days > 30 ? '🟠' : '🟡';
-    const bg = c.days > 60 ? '#fee2e2' : c.days > 30 ? '#fff7ed' : '#fefce8';
-    const col = c.days > 60 ? '#dc2626' : c.days > 30 ? '#ea580c' : '#ca8a04';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;margin-bottom:3px;background:'+bg+';border-radius:7px;">'
-      + '<span style="font-size:12px;font-weight:600;color:#1f2937;">'+icon+' '+c.firstName+' '+c.lastName+'</span>'
-      + '<span style="font-size:11px;font-weight:700;color:'+col+';margin-left:6px;white-space:nowrap;">'+c.days+' ວັນ</span>'
-      + '</div>';
-  }).join('');
+  var overlay = document.createElement("div");
+  overlay.id = "overduePopupOverlay";
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.65)";
+  overlay.style.zIndex = "999";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.padding = "16px";
 
-  const moreText = total > 20 ? '<div style="text-align:center;font-size:11px;color:#6b7280;padding:5px;">...ອີກ '+(total-20)+' ຄົນ</div>' : '';
+  var nameRows = "";
+  for (var i = 0; i < Math.min(allOverdue.length, 20); i++) {
+    var c = allOverdue[i];
+    var icon = c.days > 60 ? "🔴" : c.days > 30 ? "🟠" : "🟡";
+    var bg = c.days > 60 ? "#fee2e2" : c.days > 30 ? "#fff7ed" : "#fefce8";
+    var col = c.days > 60 ? "#dc2626" : c.days > 30 ? "#ea580c" : "#ca8a04";
+    nameRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;margin-bottom:3px;background:' + bg + ';border-radius:7px;">'
+      + '<span style="font-size:12px;font-weight:600;color:#1f2937;">' + icon + " " + c.firstName + " " + c.lastName + "</span>"
+      + '<span style="font-size:11px;font-weight:700;color:' + col + ';margin-left:6px;white-space:nowrap;">' + c.days + " ວັນ</span>"
+      + "</div>";
+  }
+  if (allOverdue.length > 20) {
+    nameRows += '<div style="text-align:center;font-size:11px;color:#6b7280;padding:5px;">...ອີກ ' + (allOverdue.length - 20) + " ຄົນ</div>";
+  }
 
-  overlay.innerHTML = '<div style="background:white;border-radius:20px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">'
+  var html = '<div style="background:white;border-radius:20px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">'
     + '<div style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:18px;text-align:center;">'
     + '<div style="font-size:38px;margin-bottom:4px;">🚨</div>'
-    + '<div style="color:white;font-size:15px;font-weight:700;">ບັດຄ້າງດົນ '+total+' ໃບ!</div>'
+    + '<div style="color:white;font-size:15px;font-weight:700;">ບັດຄ້າງດົນ ' + total + " ໃບ!</div>"
     + '<div style="display:flex;gap:6px;justify-content:center;margin-top:10px;">'
-    + '<div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:white;font-size:11px;text-align:center;"><div style="font-size:16px;font-weight:900;">'+c60+'</div><div>🔴 >60ວັນ</div></div>'
-    + '<div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:white;font-size:11px;text-align:center;"><div style="font-size:16px;font-weight:900;">'+c30+'</div><div>🟠 >30ວັນ</div></div>'
-    + '<div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:white;font-size:11px;text-align:center;"><div style="font-size:16px;font-weight:900;">'+c15+'</div><div>🟡 >15ວັນ</div></div>'
-    + '</div></div>'
+    + '<div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:white;font-size:11px;text-align:center;"><div style="font-size:16px;font-weight:900;">' + c60 + "</div><div>🔴 >60ວັນ</div></div>"
+    + '<div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:white;font-size:11px;text-align:center;"><div style="font-size:16px;font-weight:900;">' + c30 + "</div><div>🟠 >30ວັນ</div></div>"
+    + '<div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;color:white;font-size:11px;text-align:center;"><div style="font-size:16px;font-weight:900;">' + c15 + "</div><div>🟡 >15ວັນ</div></div>"
+    + "</div></div>"
     + '<div style="padding:12px 14px;">'
     + '<div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:7px;">📋 ລາຍຊື່ຄ້າງດົນ:</div>'
-    + '<div style="max-height:200px;overflow-y:auto;border:1px solid #fee2e2;border-radius:10px;padding:7px;">'+rows+moreText+'</div>'
-    + '</div>'
-    + '<div style="display:flex;gap:8px;padding:0 14px 14px;">'
-    + '<button onclick="document.getElementById('overduePopupOverlay').remove();switchTab('overdue');" style="flex:1;padding:11px;background:#dc2626;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;">📋 ເບິ່ງທັງໝົດ</button>'
-    + '<button onclick="document.getElementById('overduePopupOverlay').remove();" style="flex:1;padding:11px;background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;font-size:12px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;">ປິດ</button>'
-    + '</div></div>';
+    + '<div style="max-height:200px;overflow-y:auto;border:1px solid #fee2e2;border-radius:10px;padding:7px;">' + nameRows + "</div>"
+    + "</div>"
+    + "<div style=\"display:flex;gap:8px;padding:0 14px 14px;\">"
+    + "<button id=\"btnViewOverdue\" style=\"flex:1;padding:11px;background:#dc2626;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;\">📋 ເບິ່ງທັງໝົດ</button>"
+    + "<button id=\"btnCloseOverdue\" style=\"flex:1;padding:11px;background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;\">ປິດ</button>"
+    + "</div></div>";
 
+  overlay.innerHTML = html;
   document.body.appendChild(overlay);
+  var btnView = document.getElementById("btnViewOverdue");
+  var btnClose = document.getElementById("btnCloseOverdue");
+  if (btnView) btnView.addEventListener("click", function() {
+    var ov = document.getElementById("overduePopupOverlay");
+    if (ov) ov.remove();
+    switchTab("overdue");
+  });
+  if (btnClose) btnClose.addEventListener("click", function() {
+    var ov = document.getElementById("overduePopupOverlay");
+    if (ov) ov.remove();
+  });
 }
 
 function filterOverdueLevel(level) {
@@ -1021,7 +1046,7 @@ function filterOverdue() {
 
 function renderOverdueList() {
   const el = document.getElementById('overdueList');
-  if (!el) return;
+  if (!el || !document.getElementById('tab-overdue')) return;
   const q = (document.getElementById('overdueSearch')?.value || '').trim().toLowerCase();
 
   let data = [...allOverdue];
