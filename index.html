@@ -123,7 +123,7 @@ body{font-family:'Noto Sans Lao',sans-serif;background:linear-gradient(160deg,#0
   </div>
 </div>
 
-<div class="footer">© 2026 ກອງບັນຊາການ ປກສ ເມືອງເຊບັ້ງໄຟ ແຂວງຄຳມ່ວນ</div>
+<div class="footer">ສ້າງໂດຍ: ຮອ ອັກສອນ ອ່ອນແສງເພັດ<br>© 2026 ກອງບັນຊາການ ປກສ ເມືອງເຊບັ້ງໄຟ ແຂວງຄຳມ່ວນ</div>
 
 <!-- RESULT POPUP -->
 <div class="popup-overlay" id="resultPopup" onclick="closeResult(event)">
@@ -148,7 +148,7 @@ const SHEET_ID = '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI';
 function normalize(t) {
   if (!t) return '';
   t = t.trim();
-  t = t.replace(/^(ທ້າວ|ນາງສາວ|ນາງ|ທ\.?)\s+/u, '');
+  t = t.replace(/^(ທ້າວ|ນາງສາວ|ນາງ|ທ\.?)\s*/u, '');
   t = t.replace(/ຫນ/g,'ໜ').replace(/ຫມ/g,'ໝ').replace(/ຫລ/g,'ຫຼ');
   return t.trim();
 }
@@ -213,6 +213,63 @@ async function doSearch() {
   btn.disabled = false;
 }
 
+function playResultSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (type === 'success') {
+      // ສຽງສຳເລັດ - 2 ໂນດສູງ
+      [[800,0],[1200,0.15]].forEach(([freq, delay]) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = freq;
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.8, ctx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+        o.start(ctx.currentTime + delay);
+        o.stop(ctx.currentTime + delay + 0.25);
+      });
+    } else if (type === 'pending') {
+      // ສຽງລໍຖ້າ - ໂນດກາງ
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 600;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0.6, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 0.4);
+    } else if (type === 'error') {
+      // ສຽງຜິດ - ໂນດຕ່ຳ 2 ຄັ້ງ
+      [[300,0],[250,0.2]].forEach(([freq, delay]) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = freq;
+        o.type = 'sawtooth';
+        g.gain.setValueAtTime(0.5, ctx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.2);
+        o.start(ctx.currentTime + delay);
+        o.stop(ctx.currentTime + delay + 0.2);
+      });
+    } else if (type === 'delivered') {
+      // ສຽງຈັດສົ່ງ - 3 ໂນດ
+      [[600,0],[800,0.15],[1000,0.3]].forEach(([freq, delay]) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = freq;
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.7, ctx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.2);
+        o.start(ctx.currentTime + delay);
+        o.stop(ctx.currentTime + delay + 0.2);
+      });
+    }
+  } catch(e) {}
+}
+
 function showResult(found, fn, ln, id) {
   let type, icon, status, note;
 
@@ -246,6 +303,7 @@ function showResult(found, fn, ln, id) {
   document.getElementById('rNote').textContent = note;
   document.getElementById('rCloseBtn').className = `btn-close ${type}`;
   document.getElementById('resultPopup').classList.add('show');
+  playResultSound(type);
 }
 
 function closeResult(e) {
