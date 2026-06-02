@@ -658,7 +658,10 @@ async function confirmDelivery() {
   const proxy = recipientType==='proxy' ? document.getElementById('proxyName').value.trim() : '';
   if (recipientType==='proxy' && !proxy) { alert('⚠️ ພິມຊື່ຜູ້ຮັບແທນ'); return; }
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-GB').split('/').join('/');
+  const day = String(now.getDate()).padStart(2,'0');
+  const month = String(now.getMonth()+1).padStart(2,'0');
+  const year = now.getFullYear();
+  const dateStr = day + '/' + month + '/' + year;
   const timeStr = now.toLocaleTimeString('lo-LA',{hour:'2-digit',minute:'2-digit'});
   const payload = {
     action: 'delivery',
@@ -1048,22 +1051,77 @@ async function loadOverdueData() {
 }
 
 function showOverduePopup(total, c60, c30, c15) {
-  var msg = "🚨 ບັດຄ້າງດົນທັງໝົດ " + total + " ໃບ\n";
-  msg += "🔴 ຄ້າງ>60ວັນ: " + c60 + " ໃບ\n";
-  msg += "🟠 ຄ້າງ>30ວັນ: " + c30 + " ໃບ\n";
-  msg += "🟡 ຄ້າງ>15ວັນ: " + c15 + " ໃບ\n\n";
-  msg += "ລາຍຊື່ (20 ຄົນທຳອິດ):\n";
-  for (var i = 0; i < Math.min(allOverdue.length, 20); i++) {
+  // Remove existing popup
+  var ex = document.getElementById('overduePopupOverlay');
+  if (ex) ex.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'overduePopupOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);';
+
+  // Build name rows
+  var nameRows = '';
+  for (var i = 0; i < Math.min(allOverdue.length, 15); i++) {
     var c = allOverdue[i];
-    var icon = c.days > 60 ? "🔴" : c.days > 30 ? "🟠" : "🟡";
-    msg += icon + " " + c.firstName + " " + c.lastName + " - " + c.days + " ວັນ\n";
+    var icon = c.days > 60 ? '🔴' : c.days > 30 ? '🟠' : '🟡';
+    var bgc = c.days > 60 ? '#fee2e2' : c.days > 30 ? '#fff7ed' : '#fefce8';
+    var col = c.days > 60 ? '#dc2626' : c.days > 30 ? '#ea580c' : '#ca8a04';
+    nameRows += '<div style="display:flex;justify-content:space-between;align-items:center;'
+      + 'padding:7px 10px;margin-bottom:4px;background:' + bgc + ';border-radius:8px;border-left:3px solid ' + col + ';">'
+      + '<span style="font-size:12px;font-weight:600;color:#1f2937;">' + icon + ' ' + c.firstName + ' ' + c.lastName + '</span>'
+      + '<span style="font-size:11px;font-weight:800;color:' + col + ';background:white;padding:2px 8px;border-radius:12px;">'
+      + c.days + ' ວັນ</span>'
+      + '</div>';
   }
-  if (allOverdue.length > 20) {
-    msg += "...ແລະອີກ " + (allOverdue.length - 20) + " ຄົນ";
-  }
-  if (confirm(msg + "\n\nກົດ OK ເພື່ອເບິ່ງລາຍຊື່ທັງໝົດ")) {
-    switchTab("overdue");
-  }
+  var moreRow = allOverdue.length > 15
+    ? '<div style="text-align:center;font-size:11px;color:#6b7280;padding:6px;font-style:italic;">...ແລະອີກ ' + (allOverdue.length-15) + ' ຄົນ ກົດ "ເບິ່ງທັງໝົດ" ດ້ານລຸ່ມ</div>'
+    : '';
+
+  overlay.innerHTML =
+    '<div style="background:white;border-radius:24px;width:100%;max-width:390px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);">'
+    // Header gradient
+    + '<div style="background:linear-gradient(135deg,#7f1d1d,#dc2626,#ef4444);padding:20px 20px 16px;position:relative;">'
+    + '<div style="position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.1;background:repeating-linear-gradient(45deg,white 0,white 1px,transparent 0,transparent 50%) 0/20px 20px;"></div>'
+    + '<div style="position:relative;text-align:center;">'
+    + '<div style="font-size:44px;margin-bottom:6px;">🚨</div>'
+    + '<div style="color:white;font-size:17px;font-weight:900;letter-spacing:0.5px;">ບັດຄ້າງດົນ ' + total + ' ໃບ!</div>'
+    + '<div style="color:rgba(255,255,255,0.8);font-size:11px;margin-top:4px;">ກວດສອບ ແລະ ຕິດຕໍ່ດ່ວນ</div>'
+    // Stat boxes
+    + '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">'
+    + '<div style="background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px 12px;text-align:center;">'
+    + '<div style="font-size:20px;font-weight:900;color:white;">' + c60 + '</div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.8);">🔴 >60ວັນ</div></div>'
+    + '<div style="background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px 12px;text-align:center;">'
+    + '<div style="font-size:20px;font-weight:900;color:white;">' + c30 + '</div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.8);">🟠 >30ວັນ</div></div>'
+    + '<div style="background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px 12px;text-align:center;">'
+    + '<div style="font-size:20px;font-weight:900;color:white;">' + c15 + '</div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,0.8);">🟡 >15ວັນ</div></div>'
+    + '</div></div></div>'
+    // Body
+    + '<div style="padding:14px 16px;">'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">'
+    + '<span style="font-size:13px;font-weight:800;color:#dc2626;">📋 ລາຍຊື່ຄ້າງດົນ</span>'
+    + '<span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">' + total + ' ຄົນ</span>'
+    + '</div>'
+    + '<div style="max-height:220px;overflow-y:auto;border-radius:10px;">'
+    + nameRows + moreRow
+    + '</div></div>'
+    // Buttons
+    + '<div style="display:flex;gap:8px;padding:0 16px 16px;">'
+    + '<button id="btnOvView" style="flex:1;padding:13px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(220,38,38,0.3);">📋 ເບິ່ງທັງໝົດ</button>'
+    + '<button id="btnOvClose" style="flex:1;padding:13px;background:#f1f5f9;color:#475569;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">ປິດ ✕</button>'
+    + '</div></div>';
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('btnOvView').onclick = function() {
+    overlay.remove();
+    switchTab('overdue');
+  };
+  document.getElementById('btnOvClose').onclick = function() {
+    overlay.remove();
+  };
 }
 function filterOverdueLevel(level) {
   currentOverdueLevel = level;
