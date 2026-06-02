@@ -99,13 +99,16 @@ body{font-family:'Noto Sans Lao',sans-serif;background:var(--bg);min-height:100v
 .btn-problem{padding:8px 14px;background:var(--danger);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;margin-top:6px;}
 .popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;padding:20px;}
 .popup-overlay.show{display:flex;}
-.popup-box{background:white;border-radius:20px;padding:28px 24px;width:100%;max-width:360px;text-align:center;animation:popIn 0.3s ease;}
-.popup-icon{font-size:52px;margin-bottom:10px;}
-.popup-title{font-size:18px;font-weight:700;margin-bottom:8px;}
-.popup-msg{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:18px;}
-.btn-ok{width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;}
-.btn-ok.success{background:var(--success);color:white;}
-.btn-ok.danger{background:var(--danger);color:white;}
+.popup-box{background:white;border-radius:24px;width:100%;max-width:370px;overflow:hidden;text-align:center;animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+.popup-header{padding:28px 24px 20px;background:linear-gradient(135deg,var(--success),#047857);}
+.popup-header.danger{background:linear-gradient(135deg,var(--danger),#b91c1c);}
+.popup-icon{font-size:52px;margin-bottom:6px;}
+.popup-title{font-size:18px;font-weight:700;color:white;margin-bottom:0;}
+.popup-body{padding:16px 20px 0;}
+.popup-msg{font-size:13px;color:#374151;line-height:1.8;margin-bottom:0;text-align:left;}
+.btn-ok{width:100%;padding:15px;border:none;font-size:15px;font-weight:700;font-family:'Noto Sans Lao',sans-serif;cursor:pointer;margin-top:0;}
+.btn-ok.success{background:linear-gradient(135deg,var(--success),#047857);color:white;}
+.btn-ok.danger{background:linear-gradient(135deg,var(--danger),#b91c1c);color:white;}
 .spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
 .badge-warn{background:#fef3c7;color:var(--warning);}
@@ -287,9 +290,13 @@ body{font-family:'Noto Sans Lao',sans-serif;background:var(--bg);min-height:100v
 <!-- Popup -->
 <div class="popup-overlay" id="popup">
   <div class="popup-box">
-    <div class="popup-icon" id="popIcon"></div>
-    <div class="popup-title" id="popTitle"></div>
-    <div class="popup-msg" id="popMsg"></div>
+    <div class="popup-header" id="popHeader">
+      <div class="popup-icon" id="popIcon"></div>
+      <div class="popup-title" id="popTitle"></div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-msg" id="popMsg"></div>
+    </div>
     <button class="btn-ok success" id="popBtn" onclick="closePopup()">ຕົກລົງ</button>
   </div>
 </div>
@@ -683,6 +690,45 @@ function resetSearch() {
 }
 
 // HISTORY
+function formatSheetDate(val) {
+  if (!val) return '';
+  const s = val.toString().trim();
+  // Format: Date(2026,4,1) = year,month(0-based),day
+  const m = s.match(/Date\((\d+),(\d+),(\d+)/);
+  if (m) {
+    const y = m[1];
+    const mo = String(Number(m[2]) + 1).padStart(2,'0');
+    const d = String(m[3]).padStart(2,'0');
+    return d + '/' + mo + '/' + y;
+  }
+  return s;
+}
+
+function formatSheetTime(val) {
+  if (!val) return '';
+  const s = val.toString().trim();
+  // Date(1899,11,30,10,27,0) = time only
+  const m = s.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
+  if (m) {
+    return String(m[1]).padStart(2,'0') + ':' + String(m[2]).padStart(2,'0');
+  }
+  return s;
+}
+
+function fmtDate(val) {
+  if (!val) return '';
+  const s = val.toString().trim();
+  const m = s.match(/Date\((\d+),(\d+),(\d+)/);
+  if (m) return String(m[3]).padStart(2,'0') + '/' + String(Number(m[2])+1).padStart(2,'0') + '/' + m[1];
+  return s;
+}
+function fmtTime(val) {
+  if (!val) return '';
+  const s = val.toString().trim();
+  const m = s.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
+  if (m) return String(m[1]).padStart(2,'0') + ':' + String(m[2]).padStart(2,'0');
+  return s;
+}
 async function loadHistory() {
   const el = document.getElementById('historyList');
   el.innerHTML = '<div style="text-align:center;color:var(--gray);font-size:13px;padding:16px;">ກຳລັງໂຫຼດ...</div>';
@@ -692,8 +738,8 @@ async function loadHistory() {
       id: (r.c[0]?.v??'').toString().trim(),
       name: (r.c[1]?.v??'').toString().trim(),
       staff: (r.c[2]?.v??'').toString().trim(),
-      date: (r.c[3]?.v??'').toString().trim(),
-      time: (r.c[4]?.v??'').toString().trim(),
+      date: fmtDate(r.c[3]?.v),
+      time: fmtTime(r.c[4]?.v),
       recipient: (r.c[5]?.v??'').toString().trim(),
       proxy: (r.c[6]?.v??'').toString().trim(),
     })).filter(r => r.id);
@@ -1071,8 +1117,10 @@ function renderOverdueList() {
 function showPopup(icon, title, msg, type='success') {
   document.getElementById('popIcon').textContent = icon;
   document.getElementById('popTitle').textContent = title;
-  document.getElementById('popMsg').innerHTML = msg.replace(/\n/g,'<br>');
-  document.getElementById('popBtn').className = `btn-ok ${type}`;
+  document.getElementById('popMsg').innerHTML = msg.split('\n').join('<br>');
+  document.getElementById('popBtn').className = 'btn-ok ' + type;
+  var header = document.getElementById('popHeader');
+  if (header) header.className = 'popup-header ' + (type === 'danger' ? 'danger' : '');
   document.getElementById('popup').classList.add('show');
 }
 function closePopup() { document.getElementById('popup').classList.remove('show'); }

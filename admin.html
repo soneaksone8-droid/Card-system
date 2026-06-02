@@ -584,7 +584,14 @@ async function loadWithdrawHistory() {
       fileName: null,
     })).filter(r => r.amount > 0);
     renderWithdrawHistory();
-    updateStats();
+    // Update finance tab remaining balance
+    const localTotal = allCards.length * LOCAL;
+    const totalWithdrawn = withdrawHistory.reduce((s,w) => s + (Number(w.amount)||0), 0);
+    const remaining = localTotal - totalWithdrawn;
+    const fRem = document.getElementById('f-remaining');
+    const fWith = document.getElementById('f-withdrawn');
+    if (fRem) fRem.textContent = formatMoney(remaining);
+    if (fWith) fWith.textContent = formatMoney(totalWithdrawn);
   } catch(e) {
     console.error('loadWithdrawHistory error:', e);
     withdrawHistory = [];
