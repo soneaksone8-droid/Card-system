@@ -201,6 +201,28 @@
       </div>
 
       <!-- CHART -->
+      <!-- VISITOR COUNTER -->
+      <div class="finance-card" style="margin-bottom:14px;background:linear-gradient(135deg,#1e3a8a,#1e40af);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="finance-title" style="color:#93c5fd;margin:0;">👥 ຜູ້ເຂົ້າຊົມມື້ນີ້</div>
+          <button onclick="loadVisitorCount()" style="background:rgba(255,255,255,0.1);border:none;color:white;padding:4px 10px;border-radius:8px;font-size:11px;cursor:pointer;">🔄</button>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:28px;font-weight:900;color:white;" id="visitorToday">-</div>
+            <div style="font-size:11px;color:#93c5fd;">ຄົ້ນຫາມື້ນີ້</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:28px;font-weight:900;color:white;" id="visitorTotal">-</div>
+            <div style="font-size:11px;color:#93c5fd;">ທັງໝົດ</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:28px;font-weight:900;color:#4ade80;" id="visitorFound">-</div>
+            <div style="font-size:11px;color:#93c5fd;">ພົບຂໍ້ມູນ</div>
+          </div>
+        </div>
+      </div>
+
       <div class="finance-card" style="margin-bottom:14px;">
         <div class="finance-title">📈 ສະຖິຕິການຈັດສົ່ງ</div>
         <canvas id="deliveryChart" height="180"></canvas>
@@ -359,6 +381,7 @@ async function doLogin() {
       await loadSettings();
       loadAll();
       await loadWithdrawHistory();
+      loadVisitorCount();
     } else {
       document.getElementById('loginErr').style.display = 'block';
       setTimeout(() => document.getElementById('loginErr').style.display = 'none', 3000);
@@ -738,6 +761,36 @@ function showPopup(icon, title, msg) {
   document.getElementById('popup').classList.add('show');
 }
 function closePopup() { document.getElementById('popup').classList.remove('show'); }
+
+// ====== VISITOR COUNTER ======
+async function loadVisitorCount() {
+  try {
+    const url = 'https://docs.google.com/spreadsheets/d/' + '1h-4IDHec1pT5VoNCmea8xzJPYiSZuZfxFdA4mL-Y7oI' + '/gviz/tq?tqx=out:json&sheet=System_Log';
+    const res = await fetch(url);
+    const text = await res.text();
+    const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    if (!m) return;
+    const json = JSON.parse(m[1]);
+    const rows = json.table.rows.slice(1);
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const searches = rows.filter(r => {
+      const event = (r.c[2]?.v || '').toString();
+      return event === 'SEARCH';
+    });
+    const todaySearches = searches.filter(r => {
+      const date = (r.c[0]?.v || '').toString();
+      return date.includes(today.split('/')[0]) && date.includes(today.split('/')[1]);
+    });
+    const foundCount = searches.filter(r => (r.c[3]?.v || '') === 'FOUND').length;
+
+    document.getElementById('visitorToday').textContent = todaySearches.length;
+    document.getElementById('visitorTotal').textContent = searches.length;
+    document.getElementById('visitorFound').textContent = foundCount;
+  } catch(e) {
+    console.error('loadVisitorCount:', e);
+  }
+}
 
 // ====== CHART ======
 let chartInstance = null;
