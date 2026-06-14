@@ -339,26 +339,18 @@ async function doLogin() {
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value.trim();
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Staff`;
-    const res = await fetch(url);
-    const text = await res.text();
-    const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-    const json = JSON.parse(jsonStr[1]);
-    const allRows = json.table.rows;
-    const dataRows = allRows.slice(1);
-    const staff = dataRows.map(r => ({
-      username: (r.c[0]?.v ?? '').toString().trim(),
-      password: (r.c[1]?.v ?? '').toString().trim(),
-      name: (r.c[2]?.v ?? '').toString().trim(),
-      role: (r.c[3]?.v ?? '').toString().trim(),
-      status: (r.c[4]?.v ?? '').toString().trim(),
-    })).filter(s => s.username);
-    const found = staff.find(s => s.username.toLowerCase() === user.toLowerCase() && s.password === pass && s.role.toLowerCase() === 'admin' && s.status.includes('ງານ'));
+    const lRes = await fetch(APPS_SCRIPT, {
+      method: "POST",
+      body: JSON.stringify({action: "adminLogin", username: user, password: pass})
+    });
+    const lData = await lRes.json();
+    if (lData.token) sessionStorage.setItem("adminToken", lData.token);
+    const found = lData.success ? {name: lData.name, role: lData.role} : null;
     if (found) {
       currentAdmin = found;
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('appPage').style.display = 'block';
-      document.getElementById('topbarUser').textContent = `Admin: ${found.name}`;
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("appPage").style.display = "block";
+      document.getElementById("topbarUser").textContent = "Admin: " + found.name;
       await loadSettings();
       loadAll();
       await loadWithdrawHistory();
@@ -391,16 +383,18 @@ function switchTab(tab) {
 // ====== LOAD DATA ======
 async function loadAll() {
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Cards`;
-    const res = await fetch(url);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    allCards = json.table.rows.map(r => ({
-      id: r.c[0]?.v?.toString().trim() || '',
-      firstName: r.c[1]?.v?.toString().trim() || '',
-      lastName: r.c[2]?.v?.toString().trim() || '',
-      status: r.c[3]?.v?.toString().trim() || '',
-      date: r.c[4]?.v?.toString().trim() || '',
+    const res = await fetch(APPS_SCRIPT, {
+      method: "POST",
+      body: JSON.stringify({action: "getCards", token: sessionStorage.getItem("adminToken")||""})
+    });
+    const json = await res.json();
+    if (json.status !== "ok") throw new Error("Failed");
+    allCards = json.data.map(r => ({
+      id: r.id || "",
+      firstName: r.firstName || "",
+      lastName: r.lastName || "",
+      status: r.status || "",
+      date: r.date || "",
     }));
     updateStats();
     renderData(allCards);
@@ -568,12 +562,13 @@ async function loadDeliveryLog() {
 // ====== WITHDRAW ======
 async function loadWithdrawHistory() {
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Withdraw_Log`;
-    const res = await fetch(url);
-    const text = await res.text();
-    const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-    const json = JSON.parse(m[1]);
-    withdrawHistory = json.table.rows.slice(1).map(r => ({
+    const wRes = await fetch(APPS_SCRIPT, {
+      method: 'POST',
+      body: JSON.stringify({action: 'getWithdrawals', token: sessionStorage.getItem('adminToken')||''})
+    });
+    const wData = await wRes.json();
+    if (wData.status !== 'ok') { withdrawHistory = []; renderWithdrawHistory(); return; }
+    withdrawHistory = wData.data.map(r => ({
       date: (r.c[0]?.v ?? '').toString().trim(),
       time: '',
       amount: Number((r.c[1]?.v ?? '0')),
@@ -667,9 +662,9 @@ function saveWithdraw() {
     try {
       await fetch(APPS_SCRIPT, {
         method: 'POST',
-        mode: 'no-cors',
         body: JSON.stringify({
           action: 'withdraw',
+          token: sessionStorage.getItem('adminToken')||'',
           date: dateStr + ' ' + timeStr,
           amount: amount,
           to: to,

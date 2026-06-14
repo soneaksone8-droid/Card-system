@@ -311,12 +311,16 @@ let qrStream = null, qrScanning = false;
 let allHistory = [], allPending = [];
 
 async function fetchSheet(sheet) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-  const json = JSON.parse(m[1]);
-  return json.table.rows.slice(1);
+  const actionMap = {"Cards":"getCards","Delivery_Log":"getDeliveries","Withdraw_Log":"getWithdrawals"};
+  const action = actionMap[sheet];
+  if (!action) return [];
+  const res = await fetch(APPS_SCRIPT, {
+    method: "POST",
+    body: JSON.stringify({action: action, token: sessionStorage.getItem("staffToken")||""})
+  });
+  const data = await res.json();
+  if (data.status !== "ok") return [];
+  return data.data.map(function(item) { return {c: Object.values(item).map(function(v){return {v:v};})}; });
 }
 
 async function postData(payload) {
@@ -337,25 +341,23 @@ async function doLogin() {
   const pass = document.getElementById('loginPass').value.trim();
   if (!user || !pass) return;
   try {
-    const rows = await fetchSheet('Staff');
-    const staff = rows.map(r => ({
-      username: (r.c[0]?.v??'').toString().trim(),
-      password: (r.c[1]?.v??'').toString().trim(),
-      name: (r.c[2]?.v??'').toString().trim(),
-      role: (r.c[3]?.v??'').toString().trim(),
-      status: (r.c[4]?.v??'').toString().trim(),
-    })).filter(s => s.username);
-    const found = staff.find(s => s.username.toLowerCase()===user.toLowerCase() && s.password===pass && s.status.includes('ງານ'));
+    const lRes = await fetch(APPS_SCRIPT, {
+      method: "POST",
+      body: JSON.stringify({action: "login", username: user, password: pass})
+    });
+    const lData = await lRes.json();
+    if (lData.token) sessionStorage.setItem("staffToken", lData.token);
+    const found = lData.success ? {name: lData.name, role: lData.role} : null;
     if (found) {
       currentUser = found;
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('appPage').style.display = 'block';
-      document.getElementById('topbarUser').textContent = `ສະບາຍດີ: ${found.name}`;
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("appPage").style.display = "block";
+      document.getElementById("topbarUser").textContent = "ສະບາຍດີ: " + found.name;
       loadHistory();
       setTimeout(() => loadOverdueData(), 500);
     } else {
-      document.getElementById('loginError').style.display = 'block';
-      setTimeout(() => document.getElementById('loginError').style.display='none', 3000);
+      document.getElementById("loginError").style.display = "block";
+      setTimeout(() => document.getElementById("loginError").style.display="none", 3000);
     }
   } catch(e) { alert('ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່'); }
 }
