@@ -1279,7 +1279,7 @@ function showPopup(icon, title, msg, type='success') {
   document.getElementById('popup').classList.add('show');
 }
 function closePopup() { document.getElementById('popup').classList.remove('show'); }
-</script>
+
 // ====== COUNTER ======
 let todayDelivered = 0;
 
@@ -1459,6 +1459,8 @@ function playSuccessSound() {
   } catch(e) {}
 }
 
+
+</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
