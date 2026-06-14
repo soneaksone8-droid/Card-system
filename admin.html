@@ -773,16 +773,34 @@ async function loadVisitorCount() {
     const json = JSON.parse(m[1]);
     const rows = json.table.rows.slice(1);
 
-    const today = new Date().toLocaleDateString('en-GB');
+    const now = new Date();
+    const todayStr = now.getFullYear() + ',' + now.getMonth() + ',' + now.getDate();
+
     const searches = rows.filter(r => {
-      const event = (r.c[2]?.v || '').toString();
+      const event = (r.c[2]?.v || '').toString().trim();
       return event === 'SEARCH';
     });
+
     const todaySearches = searches.filter(r => {
-      const date = (r.c[0]?.v || '').toString();
-      return date.includes(today.split('/')[0]) && date.includes(today.split('/')[1]);
+      const raw = (r.c[0]?.v || '').toString();
+      // Match Date(2026,5,14) or Date(2026,5,14,10,30,0)
+      const dm = raw.match(/Date\((\d+),(\d+),(\d+)/);
+      if (dm) {
+        return dm[1] === String(now.getFullYear()) &&
+               Number(dm[2]) === now.getMonth() &&
+               Number(dm[3]) === now.getDate();
+      }
+      // Fallback: check string contains today DD/MM/YYYY or MM/DD/YYYY
+      const d = now.getDate();
+      const mo = now.getMonth() + 1;
+      const yr = now.getFullYear();
+      return raw.includes(String(yr)) && raw.includes(String(d)) && raw.includes(String(mo));
     });
-    const foundCount = searches.filter(r => (r.c[3]?.v || '') === 'FOUND').length;
+
+    const foundCount = searches.filter(r => {
+      const detail = (r.c[3]?.v || '').toString().trim();
+      return detail === 'FOUND';
+    }).length;
 
     document.getElementById('visitorToday').textContent = todaySearches.length;
     document.getElementById('visitorTotal').textContent = searches.length;
