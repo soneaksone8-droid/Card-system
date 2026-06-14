@@ -114,6 +114,25 @@ body{font-family:'Noto Sans Lao',sans-serif;background:var(--bg);min-height:100v
 .badge-warn{background:#fef3c7;color:var(--warning);}
 .badge-danger{background:#fee2e2;color:var(--danger);}
 .saving-indicator{position:fixed;bottom:20px;right:20px;background:var(--primary);color:white;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;display:none;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+.counter-bar{background:linear-gradient(135deg,#003087,#0052cc);padding:8px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid rgba(255,215,0,0.3);}
+.counter-today{display:flex;align-items:center;gap:8px;}
+.counter-num{font-size:24px;font-weight:900;color:#FFD700;line-height:1;}
+.counter-label{font-size:11px;color:rgba(255,255,255,0.8);line-height:1.3;}
+.counter-total{font-size:11px;color:rgba(255,255,255,0.6);text-align:right;}
+.counter-total span{color:#FFD700;font-weight:700;}
+/* PIN LOCK */
+.pin-overlay{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#001f5e,#003087,#c8102e);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.pin-overlay.show{display:flex;}
+.pin-box{background:white;border-radius:24px;padding:28px 24px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:18px 0;}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:#e5e7eb;transition:all 0.2s;}
+.pin-dot.filled{background:var(--primary);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.pin-btn{padding:16px;background:#f8faff;border:2px solid #e5e7eb;border-radius:12px;font-size:22px;font-weight:700;color:var(--primary);cursor:pointer;transition:all 0.15s;}
+.pin-btn:active{background:var(--primary);color:white;transform:scale(0.95);}
+.pin-del{background:#fff1f2;border-color:#fecaca;color:var(--danger);font-size:16px;}
+.pin-del:active{background:var(--danger);color:white;}
+.pin-error{color:var(--danger);font-size:12px;margin-top:6px;min-height:18px;}
 #qrScanLine{position:absolute;left:10%;width:80%;height:3px;background:linear-gradient(90deg,transparent,#00ff88,transparent);border-radius:2px;animation:scanMove 2s linear infinite;top:20%;}
 @keyframes scanMove{0%{top:20%;}50%{top:75%;}100%{top:20%;}}
 .qr-success-flash{animation:flashScreen 0.5s ease;}
@@ -144,6 +163,51 @@ body{font-family:'Noto Sans Lao',sans-serif;background:var(--bg);min-height:100v
       <div><div class="topbar-title">ລະບົບພະນັກງານ</div><div class="topbar-user" id="topbarUser">-</div></div>
     </div>
     <button class="btn-logout" onclick="doLogout()">ອອກ</button>
+  </div>
+
+  <!-- COUNTER BAR -->
+  <div class="counter-bar" id="counterBar" style="display:none;">
+    <div class="counter-today">
+      <div>
+        <div class="counter-num" id="todayCount">0</div>
+        <div class="counter-label">ຈັດສົ່ງມື້ນີ້<br>(ຂອງທ່ານ)</div>
+      </div>
+    </div>
+    <div class="counter-total">
+      ຈັດສົ່ງລວມທັງໝົດ<br>
+      (ທຸກຄົນ ທຸກຢຸດ)<br>
+      <span id="totalCount">-</span> ໃບ
+    </div>
+  </div>
+
+  <!-- PIN LOCK OVERLAY -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-box">
+      <div style="font-size:40px;margin-bottom:6px;">🔐</div>
+      <div style="font-size:16px;font-weight:800;color:var(--primary);">ໜ້າຈໍລ໋ອກ</div>
+      <div style="font-size:12px;color:var(--gray);margin-top:4px;" id="pinSubText">ໃສ່ PIN 4 ໂຕ ເພື່ອໃຊ້ງານຕໍ່</div>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="dot0"></div>
+        <div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div>
+        <div class="pin-dot" id="dot3"></div>
+      </div>
+      <div class="pin-grid">
+        <button class="pin-btn" onclick="pinPress('1')">1</button>
+        <button class="pin-btn" onclick="pinPress('2')">2</button>
+        <button class="pin-btn" onclick="pinPress('3')">3</button>
+        <button class="pin-btn" onclick="pinPress('4')">4</button>
+        <button class="pin-btn" onclick="pinPress('5')">5</button>
+        <button class="pin-btn" onclick="pinPress('6')">6</button>
+        <button class="pin-btn" onclick="pinPress('7')">7</button>
+        <button class="pin-btn" onclick="pinPress('8')">8</button>
+        <button class="pin-btn" onclick="pinPress('9')">9</button>
+        <button class="pin-btn pin-del" onclick="pinPress('logout')">ອອກ</button>
+        <button class="pin-btn" onclick="pinPress('0')">0</button>
+        <button class="pin-btn pin-del" onclick="pinPress('del')">⌫</button>
+      </div>
+      <div class="pin-error" id="pinError"></div>
+    </div>
   </div>
 
   <div class="content">
@@ -360,7 +424,19 @@ async function doLogin() {
       document.getElementById('loginPage').style.display = 'none';
       document.getElementById('appPage').style.display = 'block';
       document.getElementById('topbarUser').textContent = 'ສະບາຍດີ: ' + found.name;
+      // Show counter bar
+      document.getElementById('counterBar').style.display = 'flex';
+      // Start timers
+      startLogoutTimer();
+      // Ask to set PIN
+      setTimeout(() => {
+        if (!pinCode) {
+          if (confirm('🔐 ຕ້ອງການຕັ້ງ PIN ລ໋ອກໜ້າຈໍ 5 ນາທີ ບໍ?')) setupPin();
+          else startPinTimer();
+        }
+      }, 1500);
       loadHistory();
+      loadTotalDelivered();
       setTimeout(() => loadOverdueData(), 500);
     } else {
       document.getElementById('loginError').style.display = 'block';
@@ -688,7 +764,16 @@ async function confirmDelivery() {
   await loadPending(); // Reload to update status
   // Save to local history too
   allHistory.unshift({...payload, fullDate: now.toISOString()});
+  // Update total counter
+  const totalEl = document.getElementById('totalCount');
+  if (totalEl && totalEl.textContent !== '-') {
+    totalEl.textContent = (parseInt(totalEl.textContent.replace(/,/g,'')) + 1).toLocaleString();
+  }
   renderHistory(allHistory);
+  todayDelivered++;
+  updateCounter();
+  playSuccessSound();
+  if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
   showPopup('✅','ຈັດສົ່ງສຳເລັດ!',`ຊື່: ${foundData.firstName} ${foundData.lastName}\nເລກລະຫັດ: ${foundData.id}\nພະນັກງານ: ${currentUser.name}\nວັນທີ: ${dateStr} ${timeStr}\nຜູ້ຮັບ: ${payload.recipient}${proxy?'\nຊື່ຮັບແທນ: '+proxy:''}`,'success');
   resetSearch();
 }
@@ -1195,6 +1280,185 @@ function showPopup(icon, title, msg, type='success') {
 }
 function closePopup() { document.getElementById('popup').classList.remove('show'); }
 </script>
+// ====== COUNTER ======
+let todayDelivered = 0;
+
+function updateCounter() {
+  const el = document.getElementById('todayCount');
+  if (el) el.textContent = todayDelivered;
+}
+
+async function loadTotalDelivered() {
+  try {
+    const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=Delivery_Log';
+    const res = await fetch(url);
+    const text = await res.text();
+    const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    if (!m) return;
+    const json = JSON.parse(m[1]);
+    const rows = json.table.rows.slice(1);
+    const total = rows.filter(r => r.c[0]?.v).length;
+    const el = document.getElementById('totalCount');
+    if (el) el.textContent = total.toLocaleString();
+
+    // Count today for current user
+    const now = new Date();
+    const todayRows = rows.filter(r => {
+      const dateVal = (r.c[3]?.v || '').toString();
+      const staffVal = (r.c[2]?.v || '').toString().trim();
+      const dm = dateVal.match(/Date\((\d+),(\d+),(\d+)/);
+      let isToday = false;
+      if (dm) {
+        isToday = Number(dm[1]) === now.getFullYear() &&
+                  Number(dm[2]) === now.getMonth() &&
+                  Number(dm[3]) === now.getDate();
+      } else {
+        const d = String(now.getDate()).padStart(2,'0');
+        const mo = String(now.getMonth()+1).padStart(2,'0');
+        const yr = now.getFullYear();
+        isToday = dateVal.includes(d+'/'+mo+'/'+yr) || dateVal.includes(d+'/'+mo+'/'+String(yr).slice(-2));
+      }
+      return isToday && staffVal === (currentUser?.name || '');
+    });
+    todayDelivered = todayRows.length;
+    updateCounter();
+  } catch(e) {}
+}
+
+// ====== AUTO LOGOUT 8 HOURS ======
+let logoutTimer = null;
+
+function startLogoutTimer() {
+  if (logoutTimer) clearTimeout(logoutTimer);
+  logoutTimer = setTimeout(() => {
+    alert('⏰ ລະບົບ Logout ອັດຕະໂນມັດ ເນື່ອງຈາກໃຊ້ງານຄົບ 8 ຊົ່ວໂມງ');
+    doLogout();
+  }, 8 * 60 * 60 * 1000);
+}
+
+// ====== PIN LOCK 5 MIN ======
+let pinLockTimer = null;
+let pinCode = null;
+let pinInput = '';
+let pinLocked = false;
+let isSettingPin = false;
+let tempPin = '';
+
+function startPinTimer() {
+  if (pinLockTimer) clearTimeout(pinLockTimer);
+  if (!pinCode) return;
+  pinLockTimer = setTimeout(() => lockScreen(), 5 * 60 * 1000);
+}
+
+function resetPinTimer() {
+  if (!currentUser || !pinCode || pinLocked) return;
+  startPinTimer();
+}
+
+function lockScreen() {
+  if (!currentUser || !pinCode) return;
+  pinLocked = true;
+  pinInput = '';
+  updatePinDots();
+  document.getElementById('pinSubText').textContent = 'ໃສ່ PIN 4 ໂຕ ເພື່ອໃຊ້ງານຕໍ່';
+  document.getElementById('pinError').textContent = '';
+  document.getElementById('pinOverlay').classList.add('show');
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    if (dot) dot.className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
+  }
+}
+
+function pinPress(val) {
+  if (val === 'del') {
+    pinInput = pinInput.slice(0, -1);
+    updatePinDots();
+    return;
+  }
+  if (val === 'logout') {
+    document.getElementById('pinOverlay').classList.remove('show');
+    pinLocked = false;
+    doLogout();
+    return;
+  }
+  if (pinInput.length >= 4) return;
+  pinInput += val;
+  updatePinDots();
+
+  if (pinInput.length === 4) {
+    if (isSettingPin) {
+      if (!tempPin) {
+        tempPin = pinInput;
+        pinInput = '';
+        updatePinDots();
+        document.getElementById('pinSubText').textContent = 'ພິມ PIN ຄືນໃໝ່ເພື່ອຢືນຢັນ';
+      } else {
+        if (pinInput === tempPin) {
+          pinCode = pinInput;
+          isSettingPin = false;
+          tempPin = '';
+          pinInput = '';
+          document.getElementById('pinOverlay').classList.remove('show');
+          pinLocked = false;
+          startPinTimer();
+          showPopup('🔐', 'ຕັ້ງ PIN ສຳເລັດ', 'ລະບົບຈະລ໋ອກໜ້າຈໍອັດຕະໂນມັດທຸກ 5 ນາທີ', 'success');
+        } else {
+          document.getElementById('pinError').textContent = '❌ PIN ບໍ່ຕົງ ລອງໃໝ່';
+          pinInput = '';
+          tempPin = '';
+          updatePinDots();
+        }
+      }
+    } else {
+      if (pinInput === pinCode) {
+        pinLocked = false;
+        pinInput = '';
+        document.getElementById('pinOverlay').classList.remove('show');
+        startPinTimer();
+      } else {
+        document.getElementById('pinError').textContent = '❌ PIN ຜິດ ລອງໃໝ່';
+        pinInput = '';
+        updatePinDots();
+      }
+    }
+  }
+}
+
+function setupPin() {
+  isSettingPin = true;
+  tempPin = '';
+  pinInput = '';
+  updatePinDots();
+  document.getElementById('pinSubText').textContent = 'ຕັ້ງ PIN 4 ໂຕໃໝ່';
+  document.getElementById('pinError').textContent = '';
+  document.getElementById('pinOverlay').classList.add('show');
+}
+
+// Reset pin timer on any touch/click
+document.addEventListener('click', resetPinTimer);
+document.addEventListener('touchstart', resetPinTimer);
+
+// ====== SUCCESS SOUND ======
+function playSuccessSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[523, 0], [659, 0.15], [784, 0.3]].forEach(([freq, delay]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0.8, ctx.currentTime + delay);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+      o.start(ctx.currentTime + delay);
+      o.stop(ctx.currentTime + delay + 0.25);
+    });
+  } catch(e) {}
+}
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
