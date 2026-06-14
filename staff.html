@@ -662,9 +662,11 @@ async function confirmDelivery() {
   const now = new Date();
   const day = String(now.getDate()).padStart(2,'0');
   const month = String(now.getMonth()+1).padStart(2,'0');
-  const year = now.getFullYear();
+  const year = String(now.getFullYear()).slice(-2);
   const dateStr = day + '/' + month + '/' + year;
-  const timeStr = now.toLocaleTimeString('lo-LA',{hour:'2-digit',minute:'2-digit'});
+  const h = String(now.getHours()).padStart(2,'0');
+  const min = String(now.getMinutes()).padStart(2,'0');
+  const timeStr = h + ':' + min;
   const payload = {
     action: 'delivery',
     id: foundData.id,
